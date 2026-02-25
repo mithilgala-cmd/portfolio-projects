@@ -3,3 +3,5 @@ __pycache__/
 *.pyc
 *.pkl
 *.ipynb_checkpoints/
+data/*.csv
+.vscode/
