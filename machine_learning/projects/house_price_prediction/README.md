@@ -31,3 +31,5 @@ End-to-end regression project to predict house prices using structured tabular d
 - notebooks/ → EDA and experimentation
 - src/ → modular training and preprocessing scripts
 - models/ → saved trained models
+
+The project is half ready!
