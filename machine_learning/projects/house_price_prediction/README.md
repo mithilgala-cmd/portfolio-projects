@@ -33,3 +33,5 @@ End-to-end regression project to predict house prices using structured tabular d
 - models/ → saved trained models
 
 The project is 90 percent ready!
+
+Project completes on 1st March,2026.
