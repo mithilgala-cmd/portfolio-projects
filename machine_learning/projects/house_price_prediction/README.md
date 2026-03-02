@@ -32,6 +32,4 @@ End-to-end regression project to predict house prices using structured tabular d
 - src/ → modular training and preprocessing scripts
 - models/ → saved trained models
 
-The project is 90 percent ready!
-
-Project completes on 1st March,2026.
+Compared models using MAE, MSE, RMSE, and R² Score
