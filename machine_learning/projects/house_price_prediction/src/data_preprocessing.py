@@ -3,15 +3,27 @@ import numpy as np
 
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.impute import SimpleImputer
 
 
-def load_data(path: str) -> pd.DataFrame:
+def load_data(path):
     return pd.read_csv(path)
 
 
-def build_preprocessor(df: pd.DataFrame):
+def split_features_target(df):
+    df = df.copy()
+
+    if "Id" in df.columns:
+        df = df.drop("Id", axis=1)
+
+    y = np.log1p(df["SalePrice"])
+    X = df.drop("SalePrice", axis=1)
+
+    return X, y
+
+
+def build_preprocessor(df):
     df = df.copy()
 
     if "Id" in df.columns:
@@ -25,7 +37,8 @@ def build_preprocessor(df: pd.DataFrame):
 
     numeric_pipeline = Pipeline(
         steps=[
-            ("imputer", SimpleImputer(strategy="median"))
+            ("imputer", SimpleImputer(strategy="median")),
+            ("scaler", StandardScaler())
         ]
     )
 
@@ -44,15 +57,3 @@ def build_preprocessor(df: pd.DataFrame):
     )
 
     return preprocessor
-
-
-def split_features_target(df: pd.DataFrame):
-    df = df.copy()
-
-    if "Id" in df.columns:
-        df = df.drop("Id", axis=1)
-
-    y = np.log1p(df["SalePrice"])
-    X = df.drop("SalePrice", axis=1)
-
-    return X, y
