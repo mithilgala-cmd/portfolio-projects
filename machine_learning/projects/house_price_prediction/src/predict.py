@@ -1,9 +1,9 @@
-import sys
 from pathlib import Path
 
 import joblib
 import numpy as np
 import pandas as pd
+import yaml
 
 # ── Resolve project root regardless of where the script is run from ──────────
 ROOT = Path(__file__).parent.parent
@@ -11,8 +11,12 @@ ROOT = Path(__file__).parent.parent
 
 def main():
 
+    config_path = ROOT / "config.yml"
+    with open(config_path, "r") as f:
+        config = yaml.safe_load(f)
+
     model_path = ROOT / "models" / "best_model.pkl"
-    test_path = ROOT / "data" / "test.csv"
+    test_path = ROOT / config["data"]["test_path"]
 
     if not test_path.exists():
         raise FileNotFoundError(
