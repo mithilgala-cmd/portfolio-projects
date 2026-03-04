@@ -20,34 +20,22 @@ Demonstrates a complete regression pipeline — EDA, preprocessing, model traini
 
 ## Project Structure
 
-```
+```text
 house_price_prediction/
-├── data/
-│   ├── train.csv               # Labelled training data (1,460 rows)
-│   └── test.csv                # Unlabelled test data (1,459 rows)
+├── src/                        # ⭐️ Production-ready ML pipeline
+│   ├── data_preprocessing.py   # Clean, modular sklearn transformers
+│   ├── train.py                # Cross-validation & model selection
+│   └── predict.py              # Inference & submission generation
 │
-├── logs/
-│   └── training.log            # Training logs with timestamps
+├── notebooks/                  
+│   └── eda.ipynb               # ⭐️ In-depth Exploratory Data Analysis
 │
-├── models/
-│   ├── best_model.pkl          # Saved best pipeline (joblib)
-│   ├── training_metrics.json   # MAE, RMSE, R² for all models
-│   └── submission.csv          # Kaggle-ready predictions
-│
-├── notebooks/
-│   └── eda.ipynb               # Exploratory Data Analysis
-│
-├── src/
-│   ├── data_preprocessing.py   # load_data, split_features_target, build_preprocessor
-│   ├── train.py                # Training, cross-validation, model selection
-│   └── predict.py              # Inference and submission generation
-│
-├── config.yml                  # All hyperparameters and file paths
-├── requirements.txt
+├── config.yml                  # Model hyperparameters and pipeline config
+├── requirements.txt            # Pinned dependencies
 └── README.md
 ```
 
-> ⚠️ `data/`, `logs/`, and `models/` are excluded from version control via `.gitignore`.
+> ℹ️ **Note for Reviewers:** Data files (`data/`), runtime logs (`logs/`), and generated model files (`models/`) are intentionally excluded from version control to maintain a clean repository.
 
 ---
 
