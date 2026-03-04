@@ -148,7 +148,7 @@ src/
     train.py
     predict.py
 
-config.yaml
+config.yml
 requirements.txt
 README.md
 
@@ -204,7 +204,7 @@ This will:
 
 ## Configuration
 
-Model and training parameters are stored in config.yaml
+Model and training parameters are stored in config.yml
 
 Example:
 
