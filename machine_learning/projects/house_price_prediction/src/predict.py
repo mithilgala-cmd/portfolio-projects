@@ -5,20 +5,21 @@ import pandas as pd
 
 
 def main():
-    base_dir = os.path.dirname(os.path.abspath(__file__))
 
-    model_path = os.path.join(base_dir, "../models/best_model.pkl")
-    test_path = os.path.join(base_dir, "../data/test.csv")
+    model_path = "../models/best_model.pkl"
+    test_path = "../data/test.csv"
+
+    if not os.path.exists(test_path):
+        raise FileNotFoundError("Test dataset not found")
 
     model = joblib.load(model_path)
+
     test_df = pd.read_csv(test_path)
 
-    if "Id" in test_df.columns:
-        ids = test_df["Id"]
-    else:
-        ids = None
+    ids = test_df["Id"] if "Id" in test_df.columns else None
 
     predictions = model.predict(test_df)
+
     predictions = np.expm1(predictions)
 
     output = pd.DataFrame({
@@ -26,8 +27,9 @@ def main():
         "SalePrice": predictions
     })
 
-    output.to_csv(os.path.join(base_dir, "../models/submission.csv"), index=False)
-    print("Predictions saved successfully.")
+    output.to_csv("../models/submission.csv", index=False)
+
+    print("Predictions saved")
 
 
 if __name__ == "__main__":
