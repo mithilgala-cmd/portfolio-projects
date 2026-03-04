@@ -1,1 +1,12 @@
+data:
+  train_path: data/train.csv
+  test_path: data/test.csv
 
+training:
+  test_size: 0.2
+  cv_folds: 5
+
+model:
+  random_forest:
+    n_estimators: 300
+    random_state: 42
