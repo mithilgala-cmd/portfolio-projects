@@ -1,23 +1,37 @@
-import os
-import yaml
 import json
 import logging
+import os
+import sys
+from pathlib import Path
+
 import joblib
 import numpy as np
+import yaml
 
-from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.pipeline import Pipeline
-from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.pipeline import Pipeline
 
-from data_preprocessing import load_data, build_preprocessor, split_features_target
+# ── Resolve project root regardless of where the script is run from ──────────
+ROOT = Path(__file__).parent.parent
 
+sys.path.insert(0, str(Path(__file__).parent))
+from data_preprocessing import build_preprocessor, load_data, split_features_target
+
+
+# ── Logging: write to file AND print to terminal ─────────────────────────────
+log_dir = ROOT / "logs"
+log_dir.mkdir(exist_ok=True)
 
 logging.basicConfig(
-    filename="../logs/training.log",
     level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler(log_dir / "training.log"),
+        logging.StreamHandler(),
+    ],
 )
 
 
@@ -31,10 +45,12 @@ def evaluate(model, X_test, y_test):
 
 def main():
 
-    with open("../config.yaml", "r") as f:
+    config_path = ROOT / "config.yml"
+    with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
-    data_path = config["data"]["train_path"]
+    # Resolve data path relative to project root
+    data_path = ROOT / config["data"]["train_path"]
     test_size = config["training"]["test_size"]
     cv_folds = config["training"]["cv_folds"]
     rf_params = config["model"]["random_forest"]
@@ -42,7 +58,9 @@ def main():
     df = load_data(data_path)
 
     X, y = split_features_target(df)
-    preprocessor = build_preprocessor(df)
+
+    # Pass X (features only, no SalePrice / Id) to build_preprocessor
+    preprocessor = build_preprocessor(X)
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size, random_state=42
@@ -53,13 +71,15 @@ def main():
         "RandomForest": RandomForestRegressor(
             n_estimators=rf_params["n_estimators"],
             random_state=rf_params["random_state"],
-            n_jobs=-1
+            n_jobs=-1,
         ),
     }
 
     best_model = None
     best_score = -np.inf
     best_name = None
+
+    all_metrics = {}
 
     for name, model in models.items():
 
@@ -79,29 +99,41 @@ def main():
         mae, rmse, r2 = evaluate(pipeline, X_test, y_test)
 
         logging.info(f"Model: {name}")
-        logging.info(f"CV R2: {cv_scores.mean():.4f}")
-        logging.info(f"MAE: {mae:.4f}")
-        logging.info(f"RMSE: {rmse:.4f}")
-        logging.info(f"R2: {r2:.4f}")
+        logging.info(f"  CV R²:  {cv_scores.mean():.4f} ± {cv_scores.std():.4f}")
+        logging.info(f"  MAE:    {mae:.4f}")
+        logging.info(f"  RMSE:   {rmse:.4f}")
+        logging.info(f"  R²:     {r2:.4f}")
+
+        # Store metrics for every model
+        all_metrics[name] = {
+            "cv_r2_mean": round(float(cv_scores.mean()), 4),
+            "cv_r2_std": round(float(cv_scores.std()), 4),
+            "mae": round(float(mae), 4),
+            "rmse": round(float(rmse), 4),
+            "r2": round(float(r2), 4),
+        }
 
         if r2 > best_score:
             best_score = r2
             best_model = pipeline
             best_name = name
 
-    os.makedirs("../models", exist_ok=True)
+    models_dir = ROOT / "models"
+    models_dir.mkdir(exist_ok=True)
 
-    joblib.dump(best_model, "../models/best_model.pkl")
+    joblib.dump(best_model, models_dir / "best_model.pkl")
 
-    metrics = {
-        "model": best_name,
-        "r2_score": float(best_score)
+    metrics_output = {
+        "best_model": best_name,
+        "best_r2": round(float(best_score), 4),
+        "all_models": all_metrics,
     }
 
-    with open("../models/training_metrics.json", "w") as f:
-        json.dump(metrics, f, indent=4)
+    with open(models_dir / "training_metrics.json", "w") as f:
+        json.dump(metrics_output, f, indent=4)
 
-    print(f"Best Model: {best_name}")
+    logging.info(f"Best model: {best_name} (R²={best_score:.4f})")
+    print(f"\n✅ Best Model: {best_name}  |  R² = {best_score:.4f}")
 
 
 if __name__ == "__main__":
