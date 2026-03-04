@@ -1,16 +1,30 @@
-import os
+import sys
+from pathlib import Path
+
 import joblib
 import numpy as np
 import pandas as pd
 
+# ── Resolve project root regardless of where the script is run from ──────────
+ROOT = Path(__file__).parent.parent
+
 
 def main():
 
-    model_path = "../models/best_model.pkl"
-    test_path = "../data/test.csv"
+    model_path = ROOT / "models" / "best_model.pkl"
+    test_path = ROOT / "data" / "test.csv"
 
-    if not os.path.exists(test_path):
-        raise FileNotFoundError("Test dataset not found")
+    if not test_path.exists():
+        raise FileNotFoundError(
+            f"Test dataset not found: {test_path}\n"
+            "Place test.csv in the data/ folder."
+        )
+
+    if not model_path.exists():
+        raise FileNotFoundError(
+            f"Trained model not found: {model_path}\n"
+            "Run train.py first to generate the model."
+        )
 
     model = joblib.load(model_path)
 
@@ -18,18 +32,26 @@ def main():
 
     ids = test_df["Id"] if "Id" in test_df.columns else None
 
+    # Drop Id column — the training pipeline was built without it
+    if "Id" in test_df.columns:
+        test_df = test_df.drop("Id", axis=1)
+
     predictions = model.predict(test_df)
 
+    # Reverse the log1p transform applied during training
     predictions = np.expm1(predictions)
 
-    output = pd.DataFrame({
-        "Id": ids if ids is not None else range(len(predictions)),
-        "SalePrice": predictions
-    })
+    output = pd.DataFrame(
+        {
+            "Id": ids if ids is not None else range(len(predictions)),
+            "SalePrice": predictions,
+        }
+    )
 
-    output.to_csv("../models/submission.csv", index=False)
+    output_path = ROOT / "models" / "submission.csv"
+    output.to_csv(output_path, index=False)
 
-    print("Predictions saved")
+    print(f"✅ Predictions saved to {output_path}")
 
 
 if __name__ == "__main__":
