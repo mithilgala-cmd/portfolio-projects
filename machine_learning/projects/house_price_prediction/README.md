@@ -1,213 +1,144 @@
-
 # House Price Prediction
 
 An end-to-end machine learning project that predicts residential property prices using structured tabular housing data.
-This repository demonstrates a complete regression pipeline including exploratory data analysis, preprocessing,
-model training, evaluation, and prediction generation.
+Demonstrates a complete regression pipeline — EDA, preprocessing, model training, cross-validation, evaluation, and inference.
 
-Repository Owner:
-https://github.com/mithilgala-cmd
+**Author:** [Mithil Gala](https://github.com/mithilgala-cmd) &nbsp;|&nbsp; **Dataset:** [Kaggle House Prices](https://www.kaggle.com/c/house-prices-advanced-regression-techniques)
 
 ---
 
-## Project Motivation
+## Results
 
-Accurate property valuation is important for buyers, sellers, investors, and real-estate platforms.
-This project builds a machine learning system capable of estimating house prices using historical housing data and property attributes.
+| Model | CV R² | MAE | RMSE | Test R² |
+|-------|------:|----:|-----:|--------:|
+| **Linear Regression** ✅ | 0.8277 ± 0.032 | 0.0904 | 0.1321 | **0.9064** |
+| Random Forest | 0.8607 ± 0.030 | 0.0978 | 0.1454 | 0.8867 |
 
-The project focuses on building a clean and reproducible ML pipeline that can be easily extended for experimentation or deployment.
-
----
-
-## Key Features
-
-- End-to-end machine learning workflow
-- Automated preprocessing pipeline
-- Handling missing values and categorical features
-- Feature engineering and transformations
-- Multiple regression model training
-- Cross-validation for reliable evaluation
-- Model performance comparison
-- Model persistence for inference
-- Prediction generation for unseen data
-
----
-
-## Machine Learning Workflow
-
-### 1. Data Collection
-
-The dataset contains structured housing information including:
-
-- Lot size
-- Building type
-- Construction year
-- Neighborhood
-- Number of rooms
-- Garage information
-- Property condition
-- Additional amenities
-
-Target variable:
-
-SalePrice — the final sale price of the property.
-
----
-
-### 2. Exploratory Data Analysis (EDA)
-
-Initial analysis is performed in:
-
-notebooks/eda.ipynb
-
-This includes:
-
-- Dataset overview
-- Missing value analysis
-- Feature distribution plots
-- Correlation heatmap
-- Relationship between features and price
-
----
-
-### 3. Data Preprocessing
-
-The preprocessing pipeline handles:
-
-Numerical Features
-- Median imputation
-- Standard scaling
-
-Categorical Features
-- Missing value handling
-- One-hot encoding
-
-Target Variable
-- Log transformation applied to reduce skewness
-
-The preprocessing pipeline is implemented using:
-
-- sklearn ColumnTransformer
-- sklearn Pipeline
-
-This guarantees consistent transformations during both training and prediction.
-
----
-
-## Models Implemented
-
-Linear Regression
-Baseline regression model used to establish initial performance.
-
-Random Forest Regressor
-Ensemble learning model that improves prediction accuracy by combining multiple decision trees.
-
-Future models that can be added:
-
-- Gradient Boosting
-- XGBoost
-- LightGBM
-
----
-
-## Model Evaluation Metrics
-
-The models are evaluated using:
-
-MAE (Mean Absolute Error)
-Average difference between predicted and actual prices.
-
-RMSE (Root Mean Squared Error)
-Penalizes large prediction errors.
-
-R² Score
-Measures how well the model explains variance in house prices.
+> Metrics are on log-transformed `SalePrice`. Linear Regression was selected as the best model.
 
 ---
 
 ## Project Structure
 
+```
 house_price_prediction/
+├── data/
+│   ├── train.csv               # Labelled training data (1,460 rows)
+│   └── test.csv                # Unlabelled test data (1,459 rows)
+│
+├── logs/
+│   └── training.log            # Training logs with timestamps
+│
+├── models/
+│   ├── best_model.pkl          # Saved best pipeline (joblib)
+│   ├── training_metrics.json   # MAE, RMSE, R² for all models
+│   └── submission.csv          # Kaggle-ready predictions
+│
+├── notebooks/
+│   └── eda.ipynb               # Exploratory Data Analysis
+│
+├── src/
+│   ├── data_preprocessing.py   # load_data, split_features_target, build_preprocessor
+│   ├── train.py                # Training, cross-validation, model selection
+│   └── predict.py              # Inference and submission generation
+│
+├── config.yml                  # All hyperparameters and file paths
+├── requirements.txt
+└── README.md
+```
 
-data/
-    train.csv
-    test.csv
+> ⚠️ `data/`, `logs/`, and `models/` are excluded from version control via `.gitignore`.
 
-logs/
-    training.log
+---
 
-models/
-    best_model.pkl
-    training_metrics.json
+## Machine Learning Workflow
 
-notebooks/
-    eda.ipynb
+### 1. Data
 
-src/
-    data_preprocessing.py
-    train.py
-    predict.py
+The Kaggle House Prices dataset contains 79 features describing residential properties:
+- Lot size, building type, construction year, neighbourhood
+- Number of rooms, garage, basement, and amenity information
 
-config.yml
-requirements.txt
-README.md
+**Target:** `SalePrice` — log-transformed during training to reduce skewness.
+
+### 2. Preprocessing
+
+Built using `sklearn` `Pipeline` and `ColumnTransformer` for consistent train/test transforms:
+
+| Feature Type | Imputation | Encoding |
+|---|---|---|
+| Numeric | Median | StandardScaler |
+| Categorical | `"None"` constant | OneHotEncoder (ignore unknown) |
+
+### 3. Models
+
+| Model | Notes |
+|-------|-------|
+| Linear Regression | Baseline |
+| Random Forest Regressor | 300 trees, all cores |
+
+Each model is wrapped in a full `Pipeline(preprocessor + model)` and evaluated with 5-fold cross-validation.
+
+### 4. Evaluation Metrics
+
+| Metric | Description |
+|--------|-------------|
+| **MAE** | Average absolute error in log-price space |
+| **RMSE** | Penalises large prediction errors |
+| **R²** | Proportion of variance explained (higher = better) |
 
 ---
 
 ## Installation
 
-Clone the repository
-
+```bash
+# Clone the repository
 git clone https://github.com/mithilgala-cmd/portfolio-projects.git
 
-Navigate to the project folder
-
+# Navigate to the project folder
 cd portfolio-projects/machine_learning/projects/house_price_prediction
 
-Install dependencies
-
+# Install dependencies
 pip install -r requirements.txt
+```
 
 ---
 
-## Training the Model
+## Dataset Setup
 
-Run the training script
+Download the dataset from Kaggle and place files in `data/`:
 
+```bash
+kaggle competitions download -c house-prices-advanced-regression-techniques -p data/ --unzip
+```
+
+Or download manually from [kaggle.com/c/house-prices-advanced-regression-techniques/data](https://www.kaggle.com/c/house-prices-advanced-regression-techniques/data).
+
+---
+
+## Usage
+
+```bash
+# Train all models and save the best one
 python src/train.py
 
-This will:
-
-- preprocess the dataset
-- train regression models
-- evaluate performance
-- select the best model
-- save the trained model
-
-Training logs are saved in logs/training.log
-
----
-
-## Generating Predictions
-
-Run the prediction script
-
+# Generate predictions on the test set
 python src/predict.py
+```
 
-This will:
+Output files written to `models/`:
 
-- load the trained model
-- generate predictions on the test dataset
-- save predictions as submission.csv
+- `best_model.pkl` — serialised sklearn pipeline
+- `training_metrics.json` — per-model evaluation results
+- `submission.csv` — predictions ready for Kaggle submission
 
 ---
 
 ## Configuration
 
-Model and training parameters are stored in config.yml
+All paths and hyperparameters live in `config.yml`:
 
-Example:
-
+```yaml
 data:
   train_path: data/train.csv
   test_path: data/test.csv
@@ -220,41 +151,31 @@ model:
   random_forest:
     n_estimators: 300
     random_state: 42
+```
 
 ---
 
-## Technologies Used
+## Technologies
 
-Python  
-NumPy  
-Pandas  
-Scikit-Learn  
-Matplotlib  
-Seaborn  
-Jupyter Notebook  
+![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white)
+![NumPy](https://img.shields.io/badge/NumPy-013243?style=flat&logo=numpy&logoColor=white)
+![Pandas](https://img.shields.io/badge/Pandas-150458?style=flat&logo=pandas&logoColor=white)
+![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-F7931E?style=flat&logo=scikit-learn&logoColor=white)
+![Jupyter](https://img.shields.io/badge/Jupyter-F37626?style=flat&logo=jupyter&logoColor=white)
 
 ---
 
 ## Future Improvements
 
-- Hyperparameter tuning
-- Feature importance visualization
-- Gradient boosting models
-- Automated evaluation reports
-- API deployment with FastAPI
-- Docker containerization
-
----
-
-## Author
-
-Mithil Gala
-
-GitHub:
-https://github.com/mithilgala-cmd
+- [ ] Hyperparameter tuning with `GridSearchCV` or `Optuna`
+- [ ] Feature importance visualisation
+- [ ] Gradient Boosting / XGBoost / LightGBM models
+- [ ] Automated evaluation reports (HTML or PDF)
+- [ ] REST API deployment with FastAPI
+- [ ] Docker containerisation
 
 ---
 
 ## License
 
-This project is intended for educational and portfolio purposes.
+This project is intended for educational and portfolio purposes. MIT License.
