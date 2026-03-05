@@ -1,6 +1,6 @@
 # Machine Learning
 
-This section documents my structured machine learning journey — covering core concepts, real-world projects, and production pipelines.
+This section covers my machine learning work — real projects built end-to-end, from raw data to saved models.
 
 ---
 
@@ -9,12 +9,12 @@ This section documents my structured machine learning journey — covering core 
 ```
 machine_learning/
 └── projects/
-    └── house_price_prediction/   # End-to-end regression pipeline
+    └── house_price_prediction/   # regression pipeline on Kaggle housing data
 ```
 
-**Planned additions:**
-- `fundamentals/` — ML algorithm implementations from scratch
-- `deep_learning/` — Neural networks and deep learning experiments
+**Coming soon:**
+- `fundamentals/` — ML algorithms from scratch
+- `deep_learning/` — neural network experiments
 
 ---
 
@@ -28,15 +28,15 @@ machine_learning/
 
 ## Goals
 
-- Build real-world end-to-end ML pipelines
-- Compare multiple models with cross-validation
-- Implement clean, reproducible preprocessing using `sklearn` Pipelines
-- Deploy at least one production-ready model with FastAPI
-- Learn MLOps fundamentals (logging, model versioning, containerization)
+- Build real-world ML pipelines from scratch
+- Compare models with cross-validation
+- Write clean, reproducible preprocessing with sklearn Pipelines
+- Deploy a model using FastAPI
+- Get familiar with MLOps basics (logging, model versioning)
 
 ---
 
-## Tools & Libraries
+## Tools
 
 | Tool | Purpose |
 |------|---------|
@@ -44,6 +44,6 @@ machine_learning/
 | NumPy / Pandas | Data manipulation |
 | Scikit-learn | Modelling and pipelines |
 | Matplotlib / Seaborn | Visualisation |
-| Jupyter Notebook | Exploration and EDA |
+| Jupyter | EDA and experimentation |
 | joblib | Model serialisation |
 | PyYAML | Config management |

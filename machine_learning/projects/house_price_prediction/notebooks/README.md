@@ -1,29 +1,26 @@
 # Notebooks
 
-This folder contains Jupyter notebooks for exploratory analysis and experimentation.
+EDA and exploratory work for the house price prediction project.
 
 ---
 
-## Notebooks
+## Contents
 
-| Notebook | Purpose |
-|----------|---------|
-| [`eda.ipynb`](eda.ipynb) | Exploratory Data Analysis — distributions, missing values, correlations, and feature–price relationships |
-
----
-
-## What EDA Covers
-
-- **Dataset overview** — shape, dtypes, summary statistics
-- **Missing value analysis** — heatmaps and counts per column
-- **Target distribution** — raw vs log-transformed `SalePrice`
-- **Feature distributions** — histograms for numeric features
-- **Correlation heatmap** — identify features most correlated with price
-- **Categorical analysis** — boxplots of key categorical features vs price
+| Notebook | Description |
+|----------|-------------|
+| [`eda.ipynb`](eda.ipynb) | Exploratory Data Analysis — distributions, missing values, correlations, and feature-price relationships |
 
 ---
 
-## Note
+## What's in the EDA
 
-All production-ready logic (preprocessing, training, prediction) lives in `src/`.
-Notebooks are for exploration only and are **not** part of the training pipeline.
+- Dataset overview — shape, types, basic stats
+- Missing value analysis
+- Target distribution (raw vs log-transformed `SalePrice`)
+- Histograms for numeric features
+- Correlation heatmap
+- Boxplots for key categorical features vs price
+
+---
+
+The actual preprocessing and training logic lives in `src/` — the notebook is just for exploration.

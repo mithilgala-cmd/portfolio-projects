@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 import yaml
 
-# ── Resolve project root regardless of where the script is run from ──────────
 ROOT = Path(__file__).parent.parent
 
 
@@ -31,19 +30,15 @@ def main():
         )
 
     model = joblib.load(model_path)
-
     test_df = pd.read_csv(test_path)
 
     ids = test_df["Id"] if "Id" in test_df.columns else None
 
-    # Drop Id column — the training pipeline was built without it
     if "Id" in test_df.columns:
         test_df = test_df.drop("Id", axis=1)
 
     predictions = model.predict(test_df)
-
-    # Reverse the log1p transform applied during training
-    predictions = np.expm1(predictions)
+    predictions = np.expm1(predictions)  # reverse the log1p from training
 
     output = pd.DataFrame(
         {
@@ -55,7 +50,7 @@ def main():
     output_path = ROOT / "models" / "submission.csv"
     output.to_csv(output_path, index=False)
 
-    print(f"✅ Predictions saved to {output_path}")
+    print(f"Predictions saved to {output_path}")
 
 
 if __name__ == "__main__":

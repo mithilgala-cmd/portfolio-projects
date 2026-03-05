@@ -1,49 +1,44 @@
 # Source Code
 
-This folder contains all modular, production-ready Python scripts for the house price prediction pipeline.
+The main ML pipeline lives here — data loading, preprocessing, training, and inference are split into separate scripts to keep things clean.
 
 ---
 
 ## Scripts
 
-| Script | Purpose |
-|--------|---------|
-| [`data_preprocessing.py`](data_preprocessing.py) | Loads data, splits features/target, builds sklearn `ColumnTransformer` pipeline |
-| [`train.py`](train.py) | Trains multiple regression models, evaluates with cross-validation, saves the best model |
+| Script | What it does |
+|--------|----|
+| [`data_preprocessing.py`](data_preprocessing.py) | Loads the CSV, splits features and target, builds the sklearn preprocessing pipeline |
+| [`train.py`](train.py) | Trains Linear Regression and Random Forest, runs cross-validation, saves the best model |
 | [`predict.py`](predict.py) | Loads the saved model, runs inference on test data, writes `submission.csv` |
 
 ---
 
-## Pipeline Flow
+## Flow
 
 ```
 data/train.csv
       │
       ▼
-data_preprocessing.py   ← load_data(), split_features_target(), build_preprocessor()
+data_preprocessing.py   → load_data(), split_features_target(), build_preprocessor()
       │
       ▼
-train.py                ← Pipeline(preprocessor + model), cross_val_score(), evaluate()
+train.py                → Pipeline(preprocessor + model), cross_val_score(), evaluate()
       │
       ▼
-models/best_model.pkl   ← saved with joblib
+models/best_model.pkl
       │
       ▼
-predict.py              ← model.predict(test_df) → np.expm1() → submission.csv
+predict.py              → model.predict() → np.expm1() → submission.csv
 ```
 
 ---
 
-## Running the Scripts
+## Running
 
-Always run from the **project root** (where `config.yml` lives):
+From the project root (where `config.yml` lives):
 
 ```bash
-# Train
 python src/train.py
-
-# Predict
 python src/predict.py
 ```
-
-> All file paths are resolved using `pathlib` relative to the project root — scripts work correctly regardless of the current working directory.

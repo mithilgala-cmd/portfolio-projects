@@ -1,5 +1,3 @@
-import os
-
 import numpy as np
 import pandas as pd
 
@@ -10,8 +8,7 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 
 def load_data(path):
-    """Load CSV from *path*, raising a clear error if the file is missing."""
-    if not os.path.exists(path):
+    if not path.exists():
         raise FileNotFoundError(
             f"Data file not found: {path}\n"
             "Make sure train.csv / test.csv are placed in the data/ folder."
@@ -20,15 +17,12 @@ def load_data(path):
 
 
 def split_features_target(df):
-    """
-    Drop Id, log-transform SalePrice, and return (X, y).
-    Expects the raw train DataFrame (with SalePrice column).
-    """
     df = df.copy()
 
     if "Id" in df.columns:
         df = df.drop("Id", axis=1)
 
+    # log-transform SalePrice to reduce skewness
     y = np.log1p(df["SalePrice"])
     X = df.drop("SalePrice", axis=1)
 
@@ -36,12 +30,6 @@ def split_features_target(df):
 
 
 def build_preprocessor(X):
-    """
-    Build a ColumnTransformer for *X* (features only — no Id, no SalePrice).
-
-    Numeric features  → median imputation → standard scaling
-    Categorical features → 'None' imputation → one-hot encoding
-    """
     X = X.copy()
 
     numeric_features = X.select_dtypes(include=["int64", "float64"]).columns.tolist()

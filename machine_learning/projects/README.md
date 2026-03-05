@@ -1,47 +1,42 @@
 # Machine Learning Projects
 
-Each project in this folder is a complete, production-style ML pipeline — covering data ingestion, preprocessing, model training, evaluation, and inference.
+End-to-end ML projects covering the full pipeline — data ingestion, preprocessing, model training, evaluation, and inference.
 
 ---
 
 ## Projects
 
-| # | Project | Domain | Algorithm(s) | Dataset | Status |
-|---|---------|--------|--------------|---------|--------|
+| # | Project | Type | Model(s) | Dataset | Status |
+|---|---------|------|----------|---------|--------|
 | 1 | [House Price Prediction](house_price_prediction/) | Regression | Linear Regression, Random Forest | Kaggle House Prices | ✅ Complete |
 
 ---
 
-## Project Standards
+## Structure
 
-Every project in this folder follows this structure:
+Each project follows this layout:
 
 ```
 project_name/
-├── data/           # Raw datasets (not tracked by git)
-├── logs/           # Training logs (not tracked by git)
-├── models/         # Saved model files (not tracked by git)
-├── notebooks/      # EDA and experimentation notebooks
-├── src/            # Modular production-ready scripts
+├── data/           # raw datasets (not tracked)
+├── logs/           # training logs (not tracked)
+├── models/         # saved models and outputs (not tracked)
+├── notebooks/      # EDA and experimentation
+├── src/            # training and inference scripts
 │   ├── data_preprocessing.py
 │   ├── train.py
 │   └── predict.py
-├── config.yml      # Hyperparameters and paths
+├── config.yml
 ├── requirements.txt
 └── README.md
 ```
 
 ---
 
-## How to Run Any Project
+## Running any project
 
 ```bash
-# Install dependencies
 pip install -r requirements.txt
-
-# Train the model
 python src/train.py
-
-# Generate predictions
 python src/predict.py
 ```

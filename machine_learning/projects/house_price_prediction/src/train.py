@@ -1,6 +1,5 @@
 import json
 import logging
-import os
 import sys
 from pathlib import Path
 
@@ -14,14 +13,11 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.pipeline import Pipeline
 
-# ── Resolve project root regardless of where the script is run from ──────────
 ROOT = Path(__file__).parent.parent
 
 sys.path.insert(0, str(Path(__file__).parent))
 from data_preprocessing import build_preprocessor, load_data, split_features_target
 
-
-# ── Logging: write to file AND print to terminal ─────────────────────────────
 log_dir = ROOT / "logs"
 log_dir.mkdir(exist_ok=True)
 
@@ -49,17 +45,13 @@ def main():
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
-    # Resolve data path relative to project root
     data_path = ROOT / config["data"]["train_path"]
     test_size = config["training"]["test_size"]
     cv_folds = config["training"]["cv_folds"]
     rf_params = config["model"]["random_forest"]
 
     df = load_data(data_path)
-
     X, y = split_features_target(df)
-
-    # Pass X (features only, no SalePrice / Id) to build_preprocessor
     preprocessor = build_preprocessor(X)
 
     X_train, X_test, y_train, y_test = train_test_split(
@@ -78,7 +70,6 @@ def main():
     best_model = None
     best_score = -np.inf
     best_name = None
-
     all_metrics = {}
 
     for name, model in models.items():
@@ -95,7 +86,6 @@ def main():
         )
 
         pipeline.fit(X_train, y_train)
-
         mae, rmse, r2 = evaluate(pipeline, X_test, y_test)
 
         logging.info(f"Model: {name}")
@@ -104,7 +94,6 @@ def main():
         logging.info(f"  RMSE:   {rmse:.4f}")
         logging.info(f"  R²:     {r2:.4f}")
 
-        # Store metrics for every model
         all_metrics[name] = {
             "cv_r2_mean": round(float(cv_scores.mean()), 4),
             "cv_r2_std": round(float(cv_scores.std()), 4),
@@ -133,7 +122,7 @@ def main():
         json.dump(metrics_output, f, indent=4)
 
     logging.info(f"Best model: {best_name} (R²={best_score:.4f})")
-    print(f"\n✅ Best Model: {best_name}  |  R² = {best_score:.4f}")
+    print(f"\nBest model: {best_name}  |  R² = {best_score:.4f}")
 
 
 if __name__ == "__main__":

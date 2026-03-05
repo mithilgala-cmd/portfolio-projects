@@ -1,23 +1,22 @@
 # Portfolio Projects
 
-A structured collection of end-to-end projects across Machine Learning, Data Structures & Algorithms, and Python — built for learning, skill development, and placement readiness.
+A collection of projects I've built while learning — covering Machine Learning, Data Structures & Algorithms, and Python.
 
 **GitHub:** [github.com/mithilgala-cmd](https://github.com/mithilgala-cmd)
 
 ---
 
-## Repository Structure
+## Structure
 
 ```
 portfolio-projects/
-│
-├── machine_learning/       # End-to-end ML pipelines and experiments
+├── machine_learning/       # end-to-end ML pipelines
 │   └── projects/
 │       └── house_price_prediction/
 │
-├── dsa/                    # Data Structures & Algorithms implementations
+├── dsa/                    # data structures and algorithms
 │
-└── python/                 # Python scripts, automation, and mini projects
+└── python/                 # scripts and mini projects
 ```
 
 ---
@@ -28,7 +27,7 @@ portfolio-projects/
 
 | Project | Description | Status |
 |---------|-------------|--------|
-| [House Price Prediction](machine_learning/projects/house_price_prediction/) | End-to-end regression pipeline — preprocessing, training, evaluation, and prediction | ✅ Complete |
+| [House Price Prediction](machine_learning/projects/house_price_prediction/) | Regression pipeline — EDA, preprocessing, training, and prediction on Kaggle housing data | ✅ Complete |
 
 ---
 
@@ -44,11 +43,11 @@ portfolio-projects/
 
 | Topic | Description | Status |
 |-------|-------------|--------|
-| Scripts & Mini Projects | Automation scripts, utilities, and clean Python practice | 🔄 In Progress |
+| Scripts & Mini Projects | Automation, utilities, and clean Python practice | 🔄 In Progress |
 
 ---
 
-## Tech Stack
+## Stack
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white)
 ![NumPy](https://img.shields.io/badge/NumPy-013243?style=flat&logo=numpy&logoColor=white)
@@ -60,4 +59,4 @@ portfolio-projects/
 
 ## License
 
-This repository is intended for educational and portfolio purposes.
+For educational and portfolio purposes.
