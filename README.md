@@ -14,6 +14,10 @@ portfolio-projects/
 │   └── projects/
 │       └── house_price_prediction/
 │
+├── backend/                # REST APIs and backend services
+│   └── projects/
+│       └── news_aggregator/
+│
 ├── dsa/                    # data structures and algorithms
 │
 └── python/                 # scripts and mini projects
@@ -28,6 +32,14 @@ portfolio-projects/
 | Project | Description | Status |
 |---------|-------------|--------|
 | [House Price Prediction](machine_learning/projects/house_price_prediction/) | Regression pipeline — EDA, preprocessing, training, and prediction on Kaggle housing data | ✅ Complete |
+
+---
+
+### 🌐 Backend
+
+| Project | Description | Status |
+|---------|-------------|--------|
+| [News Aggregator API](backend/projects/news_aggregator/) | Async REST API — fetches, filters, and caches live news from NewsAPI.org | ✅ Complete |
 
 ---
 
@@ -54,6 +66,8 @@ portfolio-projects/
 ![Pandas](https://img.shields.io/badge/Pandas-150458?style=flat&logo=pandas&logoColor=white)
 ![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-F7931E?style=flat&logo=scikit-learn&logoColor=white)
 ![Jupyter](https://img.shields.io/badge/Jupyter-F37626?style=flat&logo=jupyter&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white)
+![httpx](https://img.shields.io/badge/httpx-async-blue?style=flat)
 
 ---
 
