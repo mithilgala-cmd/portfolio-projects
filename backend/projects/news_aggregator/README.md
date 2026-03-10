@@ -159,3 +159,5 @@ All responses are cached in memory for **5 minutes** (configurable in `config.ym
 ![Pydantic](https://img.shields.io/badge/Pydantic-E92063?style=flat&logo=pydantic&logoColor=white)
 
 Project is still in testing phase!
+
+Update : Tested on different devices.
