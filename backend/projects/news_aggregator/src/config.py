@@ -47,6 +47,7 @@ MAX_PAGE_SIZE: int = _cfg["newsapi"]["max_page_size"]
 
 # ── Cache settings ─────────────────────────────────────────────────────
 CACHE_TTL_SECONDS: int = _cfg["cache"]["ttl_seconds"]
+MAX_CACHE_SIZE: int = _cfg["cache"]["max_size"]
 
 # ── Logging ────────────────────────────────────────────────────────────
 LOG_LEVEL: str = _cfg["logging"]["level"]
