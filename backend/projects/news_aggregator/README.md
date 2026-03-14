@@ -161,3 +161,4 @@ All responses are cached in memory for **5 minutes** (configurable in `config.ym
 Project is still in testing phase!
 
 Update : Tested on different devices.
+Trying new features with the project.
