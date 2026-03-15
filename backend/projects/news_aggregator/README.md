@@ -158,7 +158,4 @@ All responses are cached in memory for **5 minutes** (configurable in `config.ym
 ![httpx](https://img.shields.io/badge/httpx-async-blue?style=flat)
 ![Pydantic](https://img.shields.io/badge/Pydantic-E92063?style=flat&logo=pydantic&logoColor=white)
 
-Project is still in testing phase!
-
-Update : Tested on different devices.
-Trying new features with the project.
+Update : Use vercel to deploy.
