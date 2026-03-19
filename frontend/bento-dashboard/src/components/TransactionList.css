@@ -1,0 +1,87 @@
+.transaction-list {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.list-header {
+  margin-bottom: 8px;
+}
+
+.list-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.view-all-btn {
+  background: transparent;
+  border: none;
+  color: var(--accent-primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.view-all-btn:hover {
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.list-items {
+  gap: 16px;
+}
+
+.tx-item {
+  padding: 12px;
+  border-radius: 14px;
+  transition: background 0.2s;
+}
+
+.tx-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tx-left {
+  gap: 16px;
+}
+
+.tx-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+
+.tx-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tx-details h4 {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.tx-details span {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.tx-amount {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.tx-amount.income {
+  color: var(--accent-success);
+}
+
+.tx-amount.expense {
+  color: var(--text-primary);
+}
