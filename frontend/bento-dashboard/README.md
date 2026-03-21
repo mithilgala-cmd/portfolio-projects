@@ -1,16 +1,74 @@
-# React + Vite
+# Bento Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A finance dashboard UI built with **React + Vite**. Features a bento-style layout with a collapsible sidebar, stat cards, transaction history, live activity chart, quick transfer, wallet, analytics, admin panel, and settings.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- 📊 **Stat cards** — portfolio value, P&L, daily change, active positions
+- 📈 **Activity chart** — weekly/monthly performance via Recharts
+- 💳 **Transaction list** — recent activity with expandable history
+- 🔄 **Quick transfer** — send money to saved contacts
+- 👛 **Wallet view** — card management interface
+- 📉 **Analytics view** — deeper performance breakdowns
+- 🛠️ **Settings** — 2FA, push alerts, and account preferences
+- 🔐 **Login page** — authentication entry point
+- 🧭 **Sidebar navigation** — smooth animated collapsible sidebar
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## Project Structure
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```
+bento-dashboard/
+├── src/
+│   ├── components/
+│   │   ├── ActivityChart.jsx     # Recharts line chart
+│   │   ├── AddTransactionModal.jsx
+│   │   ├── QuickTransfer.jsx
+│   │   ├── Sidebar.jsx
+│   │   ├── StatCard.jsx
+│   │   └── TransactionList.jsx
+│   ├── views/
+│   │   ├── AdminPanel.jsx
+│   │   ├── Analytics.jsx
+│   │   ├── Dashboard.jsx
+│   │   ├── Login.jsx
+│   │   ├── Settings.jsx
+│   │   └── Wallet.jsx
+│   ├── App.jsx
+│   └── index.css
+├── package.json
+└── vite.config.js
+```
+
+---
+
+## Quick Start
+
+```bash
+cd frontend/bento-dashboard
+npm install
+npm run dev
+```
+
+Visit `http://localhost:5173`.
+
+---
+
+## Tech Stack
+
+- **React 19** + **Vite 8**
+- **Recharts** — activity chart visualisation
+- **Lucide React** — icon library
+- **Vanilla CSS** — custom dark-theme design system
+
+---
+
+## Stack
+
+![React](https://img.shields.io/badge/React-61DAFB?style=flat&logo=react&logoColor=black)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white)
+![Recharts](https://img.shields.io/badge/Recharts-FF6384?style=flat)
+![CSS](https://img.shields.io/badge/CSS-1572B6?style=flat&logo=css3&logoColor=white)
