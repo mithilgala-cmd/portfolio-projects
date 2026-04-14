@@ -1,4 +1,4 @@
-Update: Added files on 13 April 2026. Also working on the cybersecurity project report.
+Update: Making the report for the project.
 
 # Secure Chat Application with End-to-End Encryption
 
