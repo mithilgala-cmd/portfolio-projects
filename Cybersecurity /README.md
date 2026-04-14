@@ -1,5 +1,3 @@
-Update: Making the report for the project. Also testing the project on different devices.
-
 # Secure Chat Application with End-to-End Encryption
 
 ## Overview
