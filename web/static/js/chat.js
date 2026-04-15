@@ -11,11 +11,26 @@ let peerKeysCached = 0;
 // Message polling interval
 let messagePoller = null;
 
+// Initialize message count from localStorage
+function initializeMessageCount() {
+    const stored = localStorage.getItem('messageCount');
+    if (stored) {
+        messageCount = JSON.parse(stored);
+    }
+}
+
+// Save message count to localStorage
+function saveMessageCount() {
+    localStorage.setItem('messageCount', JSON.stringify(messageCount));
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
+    initializeMessageCount();
     initializeChat();
     loadSecurityInfo();
     startMessagePolling();
+    updateStats();
 });
 
 /**
@@ -29,16 +44,13 @@ function initializeChat() {
     
     // Add click handlers to user items
     document.querySelectorAll('.user-item').forEach(item => {
-        item.addEventListener('click', function() {
-            selectUser(this.textContent.toLowerCase().trim());
+        item.addEventListener('click', function(event) {
+            selectUser(event, this.textContent.toLowerCase().trim());
         });
     });
     
-    // Message form handler
+    // Message form handler (Removed duplicate addEventListener since HTML handles onsubmit)
     const messageForm = document.getElementById('message-form');
-    if (messageForm) {
-        messageForm.addEventListener('submit', sendMessage);
-    }
 }
 
 /**
@@ -88,7 +100,7 @@ function updateSecurityPanel(data) {
 /**
  * Select a user to chat with
  */
-function selectUser(username) {
+function selectUser(event, username) {
     selectedPeer = username;
     
     // Update UI
@@ -96,7 +108,7 @@ function selectUser(username) {
         item.classList.remove('active');
     });
     
-    event.target.closest('.user-item').classList.add('active');
+    event.currentTarget.closest('.user-item').classList.add('active');
     
     // Update chat header
     document.getElementById('chat-title').textContent = `💬 Chat with ${username}`;
@@ -168,6 +180,7 @@ async function sendMessage(event) {
             // Add message to UI
             displayMessage(currentUser, message, true);
             messageCount.sent++;
+            saveMessageCount();
             updateStats();
             
             // Clear input
@@ -242,6 +255,7 @@ async function pollMessages() {
                 } else {
                     displayMessage(msg.from, msg.message, false);
                     messageCount.received++;
+                    saveMessageCount();
                     updateStats();
                 }
             });

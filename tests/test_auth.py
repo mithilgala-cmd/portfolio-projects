@@ -18,6 +18,9 @@ from utils.db import init_db_instance
 # Initialize in-memory database for testing
 def setup_test_db():
     """Initialize in-memory database for testing."""
+    from utils import db as db_module
+    if db_module._db_instance is not None:
+        db_module._db_instance.close()
     return init_db_instance(db_path=':memory:', production=False)
 
 
@@ -252,12 +255,13 @@ class TestRateLimiting(unittest.TestCase):
     
     def test_failed_login_increments_counter(self):
         """Test that failed logins increment attempt counter."""
-        user = auth.USER_STORE["alice"]
-        initial_attempts = user.get("attempts", 0)
+        from utils.db import get_db
+        db = get_db()
+        initial_attempts = db.get_user("alice").get("attempts", 0)
         
         auth.authenticate_user("alice", "wrong_password")
         
-        self.assertEqual(user.get("attempts", 0), initial_attempts + 1)
+        self.assertEqual(db.get_user("alice").get("attempts", 0), initial_attempts + 1)
     
     def test_successful_login_resets_counter(self):
         """Test that successful login resets attempt counter."""
@@ -268,8 +272,10 @@ class TestRateLimiting(unittest.TestCase):
         # Successful login should reset
         success, _ = auth.authenticate_user("alice", "correct_password")
         
+        from utils.db import get_db
+        db = get_db()
         self.assertTrue(success)
-        self.assertEqual(auth.USER_STORE["alice"]["attempts"], 0)
+        self.assertEqual(db.get_user("alice")["attempts"], 0)
     
     def test_account_lockout_after_max_attempts(self):
         """Test account lockout after max failed attempts."""
