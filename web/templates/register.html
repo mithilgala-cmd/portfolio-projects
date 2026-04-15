@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Chat - Register</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="auth-container">
+            <div class="auth-header">
+                <h1>🔒 Secure Chat</h1>
+                <p>Create Your Secure Account</p>
+            </div>
+            
+            <form method="POST" class="auth-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required placeholder="3-20 alphanumeric characters">
+                    <small>3-20 characters, alphanumeric and underscore only</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required placeholder="8-128 characters">
+                    <small>8-128 characters for security</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm">Confirm Password</label>
+                    <input type="password" id="confirm" name="confirm" required placeholder="Re-enter password">
+                </div>
+                
+                {% if error %}
+                <div class="error-message">{{ error }}</div>
+                {% endif %}
+                
+                <button type="submit" class="btn btn-primary">Register</button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>Already have an account? <a href="{{ url_for('login') }}">Login here</a></p>
+            </div>
+            
+            <div class="security-info">
+                <h3>🛡️ What We Protect</h3>
+                <ul>
+                    <li>✓ Strong password hashing (PBKDF2)</li>
+                    <li>✓ Account lockout after 5 failed attempts</li>
+                    <li>✓ Input validation</li>
+                    <li>✓ Secure session management</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Chat - Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1>🔐 Secure Chat</h1>
+                <span class="tagline">End-to-End Encrypted Messaging</span>
+            </div>
+            <div class="header-right">
+                <span class="username">👤 {{ username }}</span>
+                <a href="{{ url_for('logout') }}" class="btn btn-logout">Logout</a>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <h3>💬 Users</h3>
+                    <div class="user-list">
+                        <div class="user-item online" onclick="selectUser('alice')">
+                            <span class="status-dot"></span>
+                            Alice
+                        </div>
+                        <div class="user-item online" onclick="selectUser('bob')">
+                            <span class="status-dot"></span>
+                            Bob
+                        </div>
+                        <div class="user-item" onclick="selectUser('charlie')">
+                            <span class="status-dot"></span>
+                            Charlie
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3>🛡️ Security Info</h3>
+                    <div id="security-panel" class="security-panel">
+                        <div class="security-item">
+                            <strong>Password:</strong>
+                            <code>PBKDF2-SHA256</code>
+                        </div>
+                        <div class="security-item">
+                            <strong>Message Enc:</strong>
+                            <code>AES-256-CBC</code>
+                        </div>
+                        <div class="security-item">
+                            <strong>Key Exchange:</strong>
+                            <code>RSA-2048</code>
+                        </div>
+                        <div class="security-item">
+                            <strong>Iterations:</strong>
+                            <code>100,000</code>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3>📋 Features</h3>
+                    <ul class="features-list">
+                        <li>✓ E2E Encryption</li>
+                        <li>✓ Rate Limiting</li>
+                        <li>✓ Key Validation</li>
+                        <li>✓ Secure Relay</li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Chat Area -->
+            <main class="chat-area">
+                <div class="chat-header">
+                    <h2 id="chat-title">Select a user to chat</h2>
+                    <div class="chat-status">
+                        <span class="status-indicator" id="status-indicator">● Connected</span>
+                    </div>
+                </div>
+
+                {% if error %}
+                <div class="error-banner">{{ error }}</div>
+                {% endif %}
+
+                <div class="messages-container" id="messages-container">
+                    <div class="welcome-message">
+                        <h3>🔒 Welcome to Secure Chat</h3>
+                        <p>Your messages are encrypted end-to-end.</p>
+                        <p>Select a user from the left to start chatting.</p>
+                        <div class="encryption-flow">
+                            <div class="flow-step">
+                                <div class="flow-number">1</div>
+                                <div class="flow-text">You type message</div>
+                            </div>
+                            <div class="flow-arrow">→</div>
+                            <div class="flow-step">
+                                <div class="flow-number">2</div>
+                                <div class="flow-text">AES-256 encrypt</div>
+                            </div>
+                            <div class="flow-arrow">→</div>
+                            <div class="flow-step">
+                                <div class="flow-number">3</div>
+                                <div class="flow-text">RSA-2048 wrap key</div>
+                            </div>
+                            <div class="flow-arrow">→</div>
+                            <div class="flow-step">
+                                <div class="flow-number">4</div>
+                                <div class="flow-text">Send via server</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="message-input-area">
+                    <form id="message-form" onsubmit="sendMessage(event)">
+                        <input 
+                            type="text" 
+                            id="message-input" 
+                            placeholder="Type a message..." 
+                            disabled
+                            autocomplete="off"
+                        >
+                        <button type="submit" class="btn btn-send" disabled id="send-btn">
+                            Send 🔒
+                        </button>
+                    </form>
+                </div>
+            </main>
+
+            <!-- Right Panel -->
+            <aside class="right-panel">
+                <div class="panel-section">
+                    <h3>🔑 Key Exchange Info</h3>
+                    <div class="key-info">
+                        <div class="info-item">
+                            <strong>Your Keys:</strong>
+                            <code>RSA-2048</code>
+                            <small>Generated on login</small>
+                        </div>
+                        <div class="info-item">
+                            <strong>Peer Keys:</strong>
+                            <span id="peer-count">0</span> cached
+                        </div>
+                        <div class="info-item">
+                            <strong>Session Encryption:</strong>
+                            <small>New AES key per message</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h3>📊 Stats</h3>
+                    <div class="stats">
+                        <div class="stat">
+                            <span class="stat-label">Messages Sent:</span>
+                            <span class="stat-value" id="sent-count">0</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Messages Received:</span>
+                            <span class="stat-value" id="recv-count">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h3>ℹ️ About</h3>
+                    <div class="about-text">
+                        <p>End-to-End Encrypted Chat Application</p>
+                        <p><strong>Tech Stack:</strong></p>
+                        <ul>
+                            <li>Backend: Python</li>
+                            <li>Frontend: Flask + HTML/CSS/JS</li>
+                            <li>Crypto: PyCryptodome</li>
+                        </ul>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+</body>
+</html>

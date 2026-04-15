@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Chat - Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="auth-container">
+            <div class="auth-header">
+                <h1>🔒 Secure Chat</h1>
+                <p>End-to-End Encrypted Messaging</p>
+            </div>
+            
+            <form method="POST" class="auth-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required placeholder="Enter username">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required placeholder="Enter password">
+                </div>
+                
+                {% if error %}
+                <div class="error-message">{{ error }}</div>
+                {% endif %}
+                
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+            </div>
+            
+            <div class="security-info">
+                <h3>🛡️ Security Features</h3>
+                <ul>
+                    <li>AES-256-CBC encryption</li>
+                    <li>RSA-2048 key exchange</li>
+                    <li>PBKDF2-SHA256 passwords</li>
+                    <li>Zero-knowledge relay server</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
