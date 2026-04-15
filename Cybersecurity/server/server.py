@@ -1,134 +1,250 @@
 # server/server.py
+"""
+Secure chat server with E2E encryption support.
+Acts as a message relay without ability to decrypt payloads.
+"""
+
 import socket
 import threading
 import json
 import logging
 import sys
 import os
+from typing import Dict, Optional, Any
 
 # Add parent directory to path to allow importing auth, etc.
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils.config import HOST, PORT, BUFFER_SIZE
+from utils.config import HOST, PORT, BUFFER_SIZE, TIMEOUT
 from auth.auth import register_user, authenticate_user
 
-# Configure minimal basic logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# Configure comprehensive logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # Connected clients -> {"username": {"conn": socket, "public_key": "PEM..."}}
-clients = {}
+clients: Dict[str, Dict[str, Any]] = {}
 clients_lock = threading.Lock()
 
-def handle_client(conn, addr):
-    """Handle individual client connection."""
-    logging.info(f"Connected by {addr}")
-    current_user = None
+# Server shutdown flag
+server_running = True
+
+
+def handle_client(conn: socket.socket, addr: tuple) -> None:
+    """
+    Handle individual client connection.
+    
+    Manages:
+    - Phase 1: Authentication/Registration
+    - Phase 2: Public key exchange
+    - Phase 3: Message relaying
+    
+    Args:
+        conn (socket.socket): Client socket connection.
+        addr (tuple): Client address (host, port).
+    """
+    logger.info(f"Connected by {addr}")
+    current_user: Optional[str] = None
     
     try:
+        # Set socket timeout for robustness
+        conn.settimeout(TIMEOUT)
+        
         # Phase 1: Authentication / Registration
         auth_data = conn.recv(BUFFER_SIZE).decode('utf-8')
         if not auth_data:
+            logger.warning(f"No auth data from {addr}")
+            return
+        
+        try:
+            req = json.loads(auth_data)
+        except json.JSONDecodeError:
+            logger.error(f"Invalid JSON from {addr}")
+            conn.sendall(json.dumps({"status": "error"}).encode('utf-8'))
             return
             
-        req = json.loads(auth_data)
         action = req.get("action")
-        username = req.get("username")
-        password = req.get("password")
+        username = req.get("username", "").strip()
+        password = req.get("password", "")
         
+        # Handle registration
         if action == "register":
-            success = register_user(username, password)
-            conn.sendall(json.dumps({"status": "success" if success else "error"}).encode('utf-8'))
+            success, message = register_user(username, password)
+            response = {"status": "success" if success else "error"}
+            conn.sendall(json.dumps(response).encode('utf-8'))
             if not success:
+                logger.warning(f"Registration failed for {username}")
                 return
+            logger.info(f"User {username} registered successfully")
         
-        # After register or login, we treat login action as mandatory next step
+        # Handle login
         elif action == "login":
-            success = authenticate_user(username, password)
-            conn.sendall(json.dumps({"status": "success" if success else "error"}).encode('utf-8'))
+            success, message = authenticate_user(username, password)
+            response = {"status": "success" if success else "error"}
+            conn.sendall(json.dumps(response).encode('utf-8'))
             if not success:
-               return 
+                logger.warning(f"Login failed for {username}")
+                return
+            logger.info(f"User {username} authenticated successfully")
+        
         else:
-            conn.sendall(json.dumps({"status": "error", "message": "invalid action"}).encode('utf-8'))
+            conn.sendall(json.dumps({"status": "error"}).encode('utf-8'))
+            logger.error(f"Invalid action from {addr}")
             return
-            
+        
         current_user = username
         
-        # Wait for Public Key (sent right after login)
-        pub_key_req = conn.recv(BUFFER_SIZE).decode('utf-8')
-        pub_key_data = json.loads(pub_key_req)
-        public_key = pub_key_data.get("public_key")
+        # Phase 2: Receive and store public key
+        try:
+            pub_key_req = conn.recv(BUFFER_SIZE).decode('utf-8')
+            pub_key_data = json.loads(pub_key_req)
+            public_key = pub_key_data.get("public_key")
+            
+            if not public_key:
+                logger.error(f"No public key provided by {username}")
+                return
+            
+            with clients_lock:
+                clients[current_user] = {"conn": conn, "public_key": public_key}
+            
+            logger.info(f"User {current_user} authenticated. Key received.")
         
-        with clients_lock:
-            clients[current_user] = {"conn": conn, "public_key": public_key}
+        except (json.JSONDecodeError, KeyError) as e:
+            logger.error(f"Error receiving public key from {username}: {e}")
+            return
+        
+        # Phase 3: Message relay loop
+        while server_running:
+            try:
+                data = conn.recv(BUFFER_SIZE).decode('utf-8')
+                if not data:
+                    logger.info(f"Client {current_user} disconnected")
+                    break
+                
+                try:
+                    msg = json.loads(data)
+                except json.JSONDecodeError:
+                    logger.error(f"Invalid JSON from {current_user}")
+                    continue
+                
+                msg_type = msg.get("type")
+                
+                if msg_type == "get_user_key":
+                    # Request for peer's public key
+                    peer = msg.get("peer", "").strip()
+                    
+                    with clients_lock:
+                        if peer in clients:
+                            peer_key = clients[peer]["public_key"]
+                            response = {
+                                "type": "peer_key",
+                                "peer": peer,
+                                "public_key": peer_key
+                            }
+                            logger.debug(f"Providing public key for {peer} to {current_user}")
+                        else:
+                            response = {"type": "error", "message": "User offline"}
+                            logger.debug(f"{peer} offline, request from {current_user}")
+                    
+                    conn.sendall(json.dumps(response).encode('utf-8'))
+                
+                elif msg_type == "chat_message":
+                    # Relay encrypted chat message to target
+                    target = msg.get("target", "").strip()
+                    payload = msg.get("payload")
+                    
+                    if not payload:
+                        logger.warning(f"Empty payload from {current_user} to {target}")
+                        continue
+                    
+                    with clients_lock:
+                        if target in clients:
+                            delivery_msg = {
+                                "type": "incoming_msg",
+                                "from": current_user,
+                                "payload": payload
+                            }
+                            try:
+                                clients[target]["conn"].sendall(
+                                    json.dumps(delivery_msg).encode('utf-8')
+                                )
+                                logger.debug(f"Message relayed from {current_user} to {target}")
+                            except Exception as e:
+                                logger.error(f"Failed to deliver message to {target}: {e}")
+                        else:
+                            err_msg = {"type": "error", "message": "Target offline"}
+                            conn.sendall(json.dumps(err_msg).encode('utf-8'))
+                            logger.debug(f"{target} offline, message from {current_user}")
+                
+                else:
+                    logger.warning(f"Unknown message type from {current_user}: {msg_type}")
             
-        logging.info(f"User {current_user} authenticated. Key received.")
-
-        # Phase 2: Receive messages or act as relay
-        while True:
-            data = conn.recv(BUFFER_SIZE).decode('utf-8')
-            if not data:
+            except socket.timeout:
+                logger.debug(f"Timeout waiting for data from {current_user}")
+                continue
+            except Exception as e:
+                logger.error(f"Error processing message from {current_user}: {e}")
                 break
-                
-            msg = json.loads(data)
-            msg_type = msg.get("type")
-            
-            if msg_type == "get_user_key":
-                # Requesting peer's public key
-                peer = msg.get("peer")
-                with clients_lock:
-                    if peer in clients:
-                        peer_key = clients[peer]["public_key"]
-                        response = {"type": "peer_key", "peer": peer, "public_key": peer_key}
-                    else:
-                        response = {"type": "error", "message": "User not online"}
-                conn.sendall(json.dumps(response).encode('utf-8'))
-                
-            elif msg_type == "chat_message":
-                # Relaying chat message to target
-                target = msg.get("target")
-                payload = msg.get("payload") # This is a dict with encrypted AES sess key, ciphertext, etc
-                
-                with clients_lock:
-                    if target in clients:
-                        delivery_msg = {
-                            "type": "incoming_msg",
-                            "from": current_user,
-                            "payload": payload
-                        }
-                        try:
-                            clients[target]["conn"].sendall(json.dumps(delivery_msg).encode('utf-8'))
-                        except Exception as e:
-                            logging.error(f"Failed to deliver msg to {target}")
-                    else:
-                        err_msg = {"type": "error", "message": f"Target {target} offline"}
-                        conn.sendall(json.dumps(err_msg).encode('utf-8'))
-                        
+    
     except Exception as e:
-        # Client disconnect or parsing error
-        pass
+        logger.error(f"Unexpected error in client handler: {e}")
+    
     finally:
+        # Cleanup on disconnect
         if current_user:
             with clients_lock:
                 if current_user in clients:
                     del clients[current_user]
-            logging.info(f"User {current_user} disconnected.")
-        conn.close()
+            logger.info(f"User {current_user} removed from active clients")
+        
+        try:
+            conn.close()
+        except Exception as e:
+            logger.error(f"Error closing connection: {e}")
 
-def start_server():
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind((HOST, PORT))
-    server.listen(5)
-    logging.info(f"Server started on {HOST}:{PORT}")
+
+def start_server() -> None:
+    """
+    Start the secure chat server.
+    
+    Listens for incoming client connections and spawns
+    handler threads for each client.
+    """
+    global server_running
+    
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     
     try:
-        while True:
-            conn, addr = server.accept()
-            thread = threading.Thread(target=handle_client, args=(conn, addr))
-            thread.daemon = True
-            thread.start()
+        server_socket.bind((HOST, PORT))
+        server_socket.listen(5)
+        logger.info(f"Server started on {HOST}:{PORT}")
+        
+        while server_running:
+            try:
+                conn, addr = server_socket.accept()
+                thread = threading.Thread(
+                    target=handle_client,
+                    args=(conn, addr),
+                    daemon=True
+                )
+                thread.start()
+            except Exception as e:
+                if server_running:
+                    logger.error(f"Error accepting connection: {e}")
+    
     except KeyboardInterrupt:
-        logging.info("Server shutting down.")
+        logger.info("Server shutting down...")
+        server_running = False
+    except OSError as e:
+        logger.error(f"Server error: {e}")
     finally:
-        server.close()
+        server_running = False
+        server_socket.close()
+        logger.info("Server stopped")
+
 
 if __name__ == "__main__":
     start_server()
