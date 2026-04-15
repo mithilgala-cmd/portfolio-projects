@@ -1,8 +1,4 @@
-# server/server.py
-"""
-Secure chat server with E2E encryption support.
-Acts as a message relay without ability to decrypt payloads.
-"""
+﻿"""Secure chat server with E2E encryption support."""
 
 import socket
 import threading
@@ -12,47 +8,26 @@ import sys
 import os
 from typing import Dict, Optional, Any
 
-# Add parent directory to path to allow importing auth, etc.
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.config import HOST, PORT, BUFFER_SIZE, TIMEOUT
 from auth.auth import register_user, authenticate_user
 
-# Configure comprehensive logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Connected clients -> {"username": {"conn": socket, "public_key": "PEM..."}}
 clients: Dict[str, Dict[str, Any]] = {}
 clients_lock = threading.Lock()
-
-# Server shutdown flag
 server_running = True
 
 
 def handle_client(conn: socket.socket, addr: tuple) -> None:
-    """
-    Handle individual client connection.
-    
-    Manages:
-    - Phase 1: Authentication/Registration
-    - Phase 2: Public key exchange
-    - Phase 3: Message relaying
-    
-    Args:
-        conn (socket.socket): Client socket connection.
-        addr (tuple): Client address (host, port).
-    """
+    """Handle individual client connection with authentication and message relay."""
     logger.info(f"Connected by {addr}")
     current_user: Optional[str] = None
     
     try:
-        # Set socket timeout for robustness
         conn.settimeout(TIMEOUT)
         
-        # Phase 1: Authentication / Registration
         auth_data = conn.recv(BUFFER_SIZE).decode('utf-8')
         if not auth_data:
             logger.warning(f"No auth data from {addr}")
@@ -69,7 +44,6 @@ def handle_client(conn: socket.socket, addr: tuple) -> None:
         username = req.get("username", "").strip()
         password = req.get("password", "")
         
-        # Handle registration
         if action == "register":
             success, message = register_user(username, password)
             response = {"status": "success" if success else "error"}
@@ -79,7 +53,6 @@ def handle_client(conn: socket.socket, addr: tuple) -> None:
                 return
             logger.info(f"User {username} registered successfully")
         
-        # Handle login
         elif action == "login":
             success, message = authenticate_user(username, password)
             response = {"status": "success" if success else "error"}
@@ -96,7 +69,6 @@ def handle_client(conn: socket.socket, addr: tuple) -> None:
         
         current_user = username
         
-        # Phase 2: Receive and store public key
         try:
             pub_key_req = conn.recv(BUFFER_SIZE).decode('utf-8')
             pub_key_data = json.loads(pub_key_req)
@@ -115,7 +87,6 @@ def handle_client(conn: socket.socket, addr: tuple) -> None:
             logger.error(f"Error receiving public key from {username}: {e}")
             return
         
-        # Phase 3: Message relay loop
         while server_running:
             try:
                 data = conn.recv(BUFFER_SIZE).decode('utf-8')
@@ -132,17 +103,12 @@ def handle_client(conn: socket.socket, addr: tuple) -> None:
                 msg_type = msg.get("type")
                 
                 if msg_type == "get_user_key":
-                    # Request for peer's public key
                     peer = msg.get("peer", "").strip()
                     
                     with clients_lock:
                         if peer in clients:
                             peer_key = clients[peer]["public_key"]
-                            response = {
-                                "type": "peer_key",
-                                "peer": peer,
-                                "public_key": peer_key
-                            }
+                            response = {"type": "peer_key", "peer": peer, "public_key": peer_key}
                             logger.debug(f"Providing public key for {peer} to {current_user}")
                         else:
                             response = {"type": "error", "message": "User offline"}
@@ -151,7 +117,6 @@ def handle_client(conn: socket.socket, addr: tuple) -> None:
                     conn.sendall(json.dumps(response).encode('utf-8'))
                 
                 elif msg_type == "chat_message":
-                    # Relay encrypted chat message to target
                     target = msg.get("target", "").strip()
                     payload = msg.get("payload")
                     
@@ -161,15 +126,9 @@ def handle_client(conn: socket.socket, addr: tuple) -> None:
                     
                     with clients_lock:
                         if target in clients:
-                            delivery_msg = {
-                                "type": "incoming_msg",
-                                "from": current_user,
-                                "payload": payload
-                            }
+                            delivery_msg = {"type": "incoming_msg", "from": current_user, "payload": payload}
                             try:
-                                clients[target]["conn"].sendall(
-                                    json.dumps(delivery_msg).encode('utf-8')
-                                )
+                                clients[target]["conn"].sendall(json.dumps(delivery_msg).encode('utf-8'))
                                 logger.debug(f"Message relayed from {current_user} to {target}")
                             except Exception as e:
                                 logger.error(f"Failed to deliver message to {target}: {e}")
@@ -182,7 +141,6 @@ def handle_client(conn: socket.socket, addr: tuple) -> None:
                     logger.warning(f"Unknown message type from {current_user}: {msg_type}")
             
             except socket.timeout:
-                logger.debug(f"Timeout waiting for data from {current_user}")
                 continue
             except Exception as e:
                 logger.error(f"Error processing message from {current_user}: {e}")
@@ -192,7 +150,6 @@ def handle_client(conn: socket.socket, addr: tuple) -> None:
         logger.error(f"Unexpected error in client handler: {e}")
     
     finally:
-        # Cleanup on disconnect
         if current_user:
             with clients_lock:
                 if current_user in clients:
@@ -206,12 +163,7 @@ def handle_client(conn: socket.socket, addr: tuple) -> None:
 
 
 def start_server() -> None:
-    """
-    Start the secure chat server.
-    
-    Listens for incoming client connections and spawns
-    handler threads for each client.
-    """
+    """Start the secure chat server listening for connections."""
     global server_running
     
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -225,11 +177,7 @@ def start_server() -> None:
         while server_running:
             try:
                 conn, addr = server_socket.accept()
-                thread = threading.Thread(
-                    target=handle_client,
-                    args=(conn, addr),
-                    daemon=True
-                )
+                thread = threading.Thread(target=handle_client, args=(conn, addr), daemon=True)
                 thread.start()
             except Exception as e:
                 if server_running:
