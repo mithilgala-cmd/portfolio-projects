@@ -1,152 +1,47 @@
-# Contributing Guidelines
+# Contributing
 
-Thank you for exploring this portfolio! While this is primarily a personal portfolio project, feedback and suggestions are always welcome.
+Thanks for taking a look at this repository.
 
-## Code Quality Standards
+This is primarily a personal portfolio, but bug reports and practical improvements are welcome.
 
-All code in this repository follows these standards:
+## Contribution Scope
 
-### Python Projects
-- ✅ Type hints on all functions and methods
-- ✅ Comprehensive docstrings (Google style)
-- ✅ pytest for testing (run with: `pytest tests/ -v`)
-- ✅ Error handling with descriptive exceptions
-- ✅ Logging instead of print statements
-- ✅ SOLID principles and clean architecture
+Good contributions:
 
-### JavaScript/React Projects
-- ✅ Component-based architecture
-- ✅ Props validation
-- ✅ Modern ES6+ syntax
-- ✅ Proper error boundaries
-- ✅ Responsive design
+- Bug fixes
+- README/documentation corrections
+- Test improvements
+- Refactoring that improves clarity without changing behavior
 
-## Project Structure
+Please avoid:
 
-### Python Projects
-```
-project_name/
-├── src/ or main files          # Source code
-├── tests/                      # Unit & integration tests
-├── requirements.txt            # Dependencies
-├── README.md                   # Project documentation
-├── .env.example               # Environment template
-└── config.yml (optional)      # Configuration
-```
+- Adding unfinished projects
+- Large dependency changes without clear need
+- Auto-generated files or local environment files
 
-### Frontend Projects
-```
-project_name/
-├── src/
-│   ├── components/            # React components
-│   ├── pages/                 # Page components
-│   ├── utils/                 # Utility functions
-│   ├── App.jsx
-│   └── main.jsx
-├── public/                    # Static assets
-├── package.json
-├── vite.config.js
-└── README.md
-```
+## Basic Quality Expectations
 
-## Testing Requirements
+For Python projects:
 
-Before submission/deployment:
+- Keep functions readable and small
+- Add or update tests when behavior changes
+- Run project tests before submitting changes
 
-### Python Projects
-```bash
-# Run all tests
-pytest tests/ -v
+For React projects:
 
-# Check coverage
-pytest tests/ --cov=src
+- Keep components maintainable
+- Ensure `npm run build` succeeds
+- Do not commit `node_modules` or build outputs
 
-# Type checking (if mypy is configured)
-mypy src/
-```
+## Pull Request Checklist
 
-### Frontend Projects
-```bash
-# Build check
-npm run build
+1. Explain what changed and why.
+2. List how you verified it (tests/build/manual run).
+3. Keep scope focused to one project or one theme.
+4. Update related docs if behavior changed.
 
-# Linting (if configured)
-npm run lint
-```
+## Security and Secrets
 
-## Security Considerations
-
-- ✅ Never commit `.env` files (use `.env.example`)
-- ✅ Never commit database files (`*.db`, `*.sqlite3`)
-- ✅ Validate and sanitize user inputs
-- ✅ Use environment variables for secrets/API keys
-- ✅ Keep dependencies updated
-- ✅ Review security advisories: `npm audit`, `pip-audit`
-
-## Documentation
-
-Every project should have:
-
-1. **README.md** with:
-   - Clear project description
-   - Features list
-   - Quick Start guide
-   - Project structure
-   - How to run tests
-   - Links to documentation
-
-2. **Docstrings** on every function/class:
-   ```python
-   def authenticate_user(username: str, password: str) -> bool:
-       """
-       Authenticate a user against the database.
-       
-       Args:
-           username: The user's username (3-20 characters)
-           password: The user's password (8-128 characters)
-       
-       Returns:
-           bool: True if authentication successful, False otherwise
-           
-       Raises:
-           ValueError: If username or password format is invalid
-           AccountLockedError: If account is rate-limited
-       """
-   ```
-
-3. **Type Hints** (Python):
-   ```python
-   from typing import Optional, List
-   
-   def process_data(items: List[str], count: Optional[int] = None) -> Dict[str, int]:
-       """Process items and return results."""
-   ```
-
-## Performance Guidelines
-
-- Avoid N+1 database queries
-- Use async/await for I/O operations
-- Implement caching where appropriate
-- Profile code before optimizing
-- Document performance implications of changes
-
-## Reporting Issues
-
-If you find issues or have suggestions:
-
-1. Check if it's a known issue
-2. Provide clear description and reproduction steps
-3. Include environment details (Python version, OS, etc.)
-4. Share relevant code snippets or logs
-
-## Attribution
-
-When using or referencing code from this portfolio:
-
-- Give appropriate credit
-- Link back to the original repository
-- Include the MIT License
-
----
-
-**Thank you for your interest in this portfolio!** 🚀
+- Never commit API keys or `.env` files.
+- Use `.env.example` when a project needs environment variables.
+- Do not commit database files, model artifacts, or logs.

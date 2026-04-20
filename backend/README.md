@@ -1,33 +1,17 @@
-# Backend
+# Backend Projects
 
-This section covers backend API projects — RESTful services, async APIs, and server-side engineering.
+Backend-focused projects built to demonstrate API design, async I/O, and production-style service structure.
 
----
+## Included Projects
 
-## Structure
+| Project | Path | Key topics |
+|---|---|---|
+| News Aggregator API | [`projects/news_aggregator`](projects/news_aggregator/) | FastAPI, async httpx, TTL cache, tests |
+| Code Review AI API | [`projects/code_review_ai`](projects/code_review_ai/) | FastAPI + LLM integration, structured JSON responses |
 
-```
-backend/
-└── projects/
-    ├── news_aggregator/   # FastAPI news aggregation API
-    └── code_review_ai/    # FastAPI + Gemini AI code review API
-```
+## Common Skills Demonstrated
 
----
-
-## Projects
-
-| Project | Description | Stack | Status |
-|---------|-------------|-------|--------|
-| [News Aggregator API](projects/news_aggregator/) | Async REST API that fetches, filters, and caches live news from NewsAPI.org | FastAPI, httpx, Pydantic | ✅ Complete |
-| [Code Review AI API](projects/code_review_ai/) | AI-powered code review using Google Gemini — returns structured feedback with scores, issues, and suggestions | FastAPI, google-genai, Pydantic | ✅ Complete |
-
----
-
-## Goals
-
-- Build production-quality REST APIs with FastAPI
-- Practice async programming with `httpx`
-- Implement caching strategies
-- Integrate third-party AI APIs (Google Gemini)
-- Write clean, documented, and modular backends
+- FastAPI router-based architecture
+- Request/response validation with Pydantic
+- External API integration and environment-based configuration
+- Local testing workflows
