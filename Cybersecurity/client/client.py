@@ -16,8 +16,12 @@ from typing import Optional, Dict
 # Add parent directory to path to allow importing crypto modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.config import HOST, PORT, BUFFER_SIZE, TIMEOUT
+from utils.db import init_db_instance
 from crypto.rsa import generate_rsa_key_pair, encrypt_with_public_key, decrypt_with_private_key
 from crypto.aes import generate_aes_key, encrypt_aes, decrypt_aes
+
+# Initialize persistent database
+db = init_db_instance()
 
 # Configure logging
 logging.basicConfig(
@@ -301,7 +305,7 @@ class ChatClient:
             })
             
             self.sock.sendall(req.encode('utf-8'))
-            print(f"[You → {peer}]: {message}")
+            print(f"[You -> {peer}]: {message}")
             logger.info(f"Message sent from {self.username} to {peer}")
         
         except Exception as e:

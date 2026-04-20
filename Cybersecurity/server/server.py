@@ -10,10 +10,14 @@ from typing import Dict, Optional, Any
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.config import HOST, PORT, BUFFER_SIZE, TIMEOUT
+from utils.db import init_db_instance
 from auth.auth import register_user, authenticate_user
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+# Initialize persistent database
+db = init_db_instance()
 
 clients: Dict[str, Dict[str, Any]] = {}
 clients_lock = threading.Lock()

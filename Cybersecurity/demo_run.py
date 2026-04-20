@@ -103,19 +103,22 @@ def run_demo():
         print("SERVER LOGS")
         print("="*50)
         server_out, server_err = server.communicate(timeout=5)
-        print(server_err if server_err else server_out)
+        print("STDOUT:", server_out)
+        print("STDERR:", server_err)
         
         print("\n" + "="*50)
         print("ALICE'S TERMINAL OUTPUT")
         print("="*50)
         alice_out, alice_err = alice.communicate()
-        print(alice_out if alice_out else alice_err)
+        print("STDOUT:", alice_out)
+        print("STDERR:", alice_err)
         
         print("\n" + "="*50)
         print("BOB'S TERMINAL OUTPUT")
         print("="*50)
         bob_out, bob_err = bob.communicate()
-        print(bob_out if bob_out else bob_err)
+        print("STDOUT:", bob_out)
+        print("STDERR:", bob_err)
         
         logger.info("Demo completed successfully!")
     

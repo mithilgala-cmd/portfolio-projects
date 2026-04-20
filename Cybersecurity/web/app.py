@@ -17,9 +17,13 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from crypto.rsa import generate_rsa_key_pair, encrypt_with_public_key, decrypt_with_private_key
 from crypto.aes import generate_aes_key, encrypt_aes, decrypt_aes
 from auth.auth import register_user, authenticate_user
+from utils.db import init_db_instance
 
 app = Flask(__name__)
 app.secret_key = os.urandom(32)
+
+# Initialize persistent database
+db = init_db_instance()
 
 # Configuration
 CHAT_SERVER_HOST = '127.0.0.1'
@@ -92,7 +96,9 @@ def receive_messages_background(username, sock):
                 })
         
         except Exception as e:
-            print(f"Error receiving message: {e}")
+            # Connection was closed or interrupted - log only if it's not a normal close
+            if "10053" not in str(e) and "aborted" not in str(e).lower():
+                print(f"Error receiving message: {e}")
             break
 
 
@@ -108,7 +114,7 @@ def index():
 def register():
     """Register a new user."""
     if request.method == 'POST':
-        username = request.form.get('username', '').strip()
+        username = request.form.get('username', '').strip().lower()
         password = request.form.get('password', '')
         confirm = request.form.get('confirm', '')
         
@@ -118,6 +124,7 @@ def register():
         success, message = register_user(username, password)
         if success:
             session['username'] = username
+            session['password'] = password  # Add this! Store for backend socket authentication
             return redirect(url_for('chat'))
         else:
             return render_template('register.html', error=message)
@@ -129,12 +136,13 @@ def register():
 def login():
     """Login page."""
     if request.method == 'POST':
-        username = request.form.get('username', '').strip()
+        username = request.form.get('username', '').strip().lower()
         password = request.form.get('password', '')
         
         success, message = authenticate_user(username, password)
         if success:
             session['username'] = username
+            session['password'] = password  # Store password for chat server connection
             return redirect(url_for('chat'))
         else:
             return render_template('login.html', error='Invalid credentials')
@@ -155,11 +163,12 @@ def chat():
         try:
             sock = create_secure_socket()
             
-            # Authenticate
+            # Authenticate with stored password
+            password = session.get('password', '')
             auth_req = json.dumps({
                 "action": "login",
                 "username": username,
-                "password": session.get('temp_password', '')  # This won't work, need better approach
+                "password": password
             })
             sock.sendall(auth_req.encode('utf-8'))
             response = sock.recv(BUFFER_SIZE).decode('utf-8')
