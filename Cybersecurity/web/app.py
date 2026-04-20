@@ -7,7 +7,6 @@ from flask import Flask, render_template, request, jsonify, session, redirect, u
 import socket
 import json
 import threading
-import base64
 import os
 import sys
 from datetime import datetime
@@ -33,6 +32,9 @@ BUFFER_SIZE = 4096
 # Store user sessions and sockets
 user_sessions = {}  # username -> {'socket': socket, 'private_key': key, 'peer_keys': {}}
 pending_messages = {}  # username -> list of messages
+# Temporary in-memory credentials used only until a chat socket is authenticated.
+# Avoid storing plaintext passwords in the Flask cookie-based session.
+pending_credentials = {}  # username -> password
 
 
 def create_secure_socket():
@@ -124,7 +126,7 @@ def register():
         success, message = register_user(username, password)
         if success:
             session['username'] = username
-            session['password'] = password  # Add this! Store for backend socket authentication
+            pending_credentials[username] = password
             return redirect(url_for('chat'))
         else:
             return render_template('register.html', error=message)
@@ -142,7 +144,7 @@ def login():
         success, message = authenticate_user(username, password)
         if success:
             session['username'] = username
-            session['password'] = password  # Store password for chat server connection
+            pending_credentials[username] = password
             return redirect(url_for('chat'))
         else:
             return render_template('login.html', error='Invalid credentials')
@@ -163,8 +165,12 @@ def chat():
         try:
             sock = create_secure_socket()
             
-            # Authenticate with stored password
-            password = session.get('password', '')
+            # Authenticate with temporary in-memory credential
+            password = pending_credentials.get(username)
+            if not password:
+                session.clear()
+                return redirect(url_for('login'))
+
             auth_req = json.dumps({
                 "action": "login",
                 "username": username,
@@ -172,6 +178,13 @@ def chat():
             })
             sock.sendall(auth_req.encode('utf-8'))
             response = sock.recv(BUFFER_SIZE).decode('utf-8')
+            auth_response = json.loads(response)
+            if auth_response.get("status") != "success":
+                return render_template(
+                    'chat.html',
+                    error='Authentication with chat server failed. Please log in again.',
+                    username=username
+                )
             
             # Generate RSA keys
             private_key, public_key = generate_rsa_key_pair()
@@ -196,6 +209,7 @@ def chat():
                 daemon=True
             )
             thread.start()
+            pending_credentials.pop(username, None)
         
         except Exception as e:
             return render_template('chat.html', error=f"Connection error: {e}", username=username)
@@ -299,10 +313,10 @@ def security_info_api():
             'authentication': 'Rate-limited login with account lockout'
         },
         'technical_details': {
-            'aes_key_size': '256 bits',
-            'rsa_key_size': '2048 bits',
-            'salt_size': '16 bytes',
-            'hash_iterations': '100,000'
+            'aes_key_size': 256,
+            'rsa_key_size': 2048,
+            'salt_size_bytes': 16,
+            'hash_iterations': 100000
         }
     })
 
@@ -312,6 +326,7 @@ def logout():
     """Logout user."""
     if 'username' in session:
         username = session['username']
+        pending_credentials.pop(username, None)
         if username in user_sessions:
             try:
                 user_sessions[username]['socket'].close()

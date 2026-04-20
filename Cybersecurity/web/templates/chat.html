@@ -26,15 +26,15 @@
                 <div class="sidebar-section">
                     <h3>💬 Users</h3>
                     <div class="user-list">
-                        <div class="user-item online" onclick="selectUser('alice')">
+                        <div class="user-item online" data-username="alice">
                             <span class="status-dot"></span>
                             Alice
                         </div>
-                        <div class="user-item online" onclick="selectUser('bob')">
+                        <div class="user-item online" data-username="bob">
                             <span class="status-dot"></span>
                             Bob
                         </div>
-                        <div class="user-item" onclick="selectUser('charlie')">
+                        <div class="user-item" data-username="charlie">
                             <span class="status-dot"></span>
                             Charlie
                         </div>
@@ -117,7 +117,7 @@
                 </div>
 
                 <div class="message-input-area">
-                    <form id="message-form" onsubmit="sendMessage(event)">
+                    <form id="message-form">
                         <input 
                             type="text" 
                             id="message-input" 
