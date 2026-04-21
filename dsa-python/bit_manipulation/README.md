@@ -1,26 +1,25 @@
-# Bit Manipulation 🧠
+# Bit Manipulation
 
-## 📌 Overview
-Using bitwise operators (AND, OR, XOR, shifts) to optimize space and time.
+## When To Use
 
----
+Bit masks and low-level operations for speed and space.
 
-## ⏳ Complexity Analysis
-- **Time Complexity:** Usually depends on the exact algorithm. Try to identify standard times (e.g., $O(N)$ for 1D arrays, $O(V+E)$ for graphs).
-- **Space Complexity:** Always consider auxiliary space and space used by recursion stack (e.g., $O(N)$ for recursion).
+## Interview Signals
 
----
+- Recognizes the pattern quickly
+- Chooses correct data structures
+- Explains time and space complexity clearly
 
-## 📝 Classic Problems to Solve
-We recommend beginning with these introductory problems for the pattern:
+## Starter Problems
+
 - Single Number
-- Number of 1 Bits
 - Counting Bits
+- Sum of Two Integers
 
----
+## Practice Workflow
 
-## 🚀 How to Practice
-1. Duplicate the root `template.py` file into this directory for your new problem.
-2. Implement your logic with appropriate type hints and docstrings.
-3. Write a test case in the corresponding `tests/` folder.
-4. Run `python -m pytest` from the root directory to verify your logic!
+1. Implement the problem in this folder.
+2. Add a corresponding test in tests/<pattern>.
+3. Run python -m pytest from dsa-python.
+4. Record the solve in PROGRESS.md.
+

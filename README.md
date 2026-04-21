@@ -13,7 +13,7 @@ A curated portfolio of backend, frontend, machine learning, cybersecurity, and D
 | Frontend | [`frontend/code-review-ai`](frontend/code-review-ai/) | Monaco-powered code editor UI with AI review workflow | React, Vite, Monaco |
 | Frontend | [`frontend/bento-dashboard`](frontend/bento-dashboard/) | Stateful dashboard UI with charts and local persistence | React, Vite, Recharts |
 | Machine Learning | [`machine_learning/projects/house_price_prediction`](machine_learning/projects/house_price_prediction/) | Tabular ML pipeline, preprocessing, training, inference scripts | Python, scikit-learn, pandas |
-| Interview Prep | [`dsa-patterns-python-1`](dsa-patterns-python-1/) | Pattern-wise DSA structure with tests and templates | Python, pytest |
+| Interview Prep | [`dsa-python`](dsa-python/) | Pattern-wise DSA structure with tests, roadmap, and project scaffolding | Python, pytest |
 
 ## Placement-Focused Highlights
 
@@ -69,6 +69,14 @@ cd Cybersecurity
 python client/client.py
 ```
 
+### 5) Run DSA test suite
+
+```bash
+cd dsa-python
+pip install -r requirements.txt
+python -m pytest
+```
+
 ## Repository Structure
 
 ```text
@@ -79,7 +87,7 @@ portfolio-projects/
 |-- frontend/
 |-- machine_learning/
 |   `-- projects/
-`-- dsa-patterns-python-1/
+`-- dsa-python/
 ```
 
 ## Notes
