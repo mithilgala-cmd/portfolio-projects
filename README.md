@@ -7,11 +7,13 @@ A curated portfolio of backend, frontend, machine learning, cybersecurity, and D
 | Area | Project | What it demonstrates | Main stack |
 |---|---|---|---|
 | Cybersecurity | [`Cybersecurity`](Cybersecurity/) | End-to-end encrypted chat, authentication, rate limiting, secure relay model | Python, sockets, Flask, SQLite, PyCryptodome |
-| Backend API | [`backend/projects/news_aggregator`](backend/projects/news_aggregator/) | Async API integration, caching, schema validation, tests | FastAPI, httpx, Pydantic |
-| Backend API + AI | [`backend/projects/code_review_ai`](backend/projects/code_review_ai/) | LLM-integrated API design and structured response handling | FastAPI, Google Gemini |
-| Frontend | [`frontend/news-aggregator`](frontend/news-aggregator/) | API-driven React UI with search and loading/error states | React, Vite |
-| Frontend | [`frontend/code-review-ai`](frontend/code-review-ai/) | Monaco-powered code editor UI with AI review workflow | React, Vite, Monaco |
-| Frontend | [`frontend/bento-dashboard`](frontend/bento-dashboard/) | Stateful dashboard UI with charts and local persistence | React, Vite, Recharts |
+| Backend API | [`projects/news-aggregator/backend`](projects/news-aggregator/backend/) | Async API integration, caching, schema validation, tests | FastAPI, httpx, Pydantic |
+| Backend API + AI | [`projects/code-review-ai/backend`](projects/code-review-ai/backend/) | LLM-integrated API design and structured response handling | FastAPI, Google Gemini |
+| Backend API | [`projects/task-tracker/backend`](projects/task-tracker/backend/) | Supabase-backed CRUD API with status workflow and tests | FastAPI, Supabase, Pydantic |
+| Frontend | [`projects/news-aggregator/frontend`](projects/news-aggregator/frontend/) | API-driven React UI with search and loading/error states | React, Vite |
+| Frontend | [`projects/code-review-ai/frontend`](projects/code-review-ai/frontend/) | Monaco-powered code editor UI with AI review workflow | React, Vite, Monaco |
+| Frontend | [`projects/bento-dashboard`](projects/bento-dashboard/) | Stateful dashboard UI with charts and local persistence | React, Vite, Recharts |
+| Frontend | [`projects/task-tracker/frontend`](projects/task-tracker/frontend/) | Premium-feel task board UI with live workflow actions | React, Vite, Axios |
 | Machine Learning | [`machine_learning/projects/house_price_prediction`](machine_learning/projects/house_price_prediction/) | Tabular ML pipeline, preprocessing, training, inference scripts | Python, scikit-learn, pandas |
 | Interview Prep | [`dsa-python`](dsa-python/) | Pattern-wise DSA structure with tests, roadmap, and project scaffolding | Python, pytest |
 
@@ -41,7 +43,7 @@ cd portfolio-projects
 ### 2) Run a backend API example
 
 ```bash
-cd backend/projects/news_aggregator
+cd projects/news-aggregator/backend
 pip install -r requirements.txt
 uvicorn src.main:app --reload --port 8000
 ```
@@ -49,7 +51,7 @@ uvicorn src.main:app --reload --port 8000
 ### 3) Run a frontend example
 
 ```bash
-cd frontend/news-aggregator
+cd projects/news-aggregator/frontend
 npm install
 npm run dev
 ```
@@ -81,17 +83,24 @@ python -m pytest
 
 ```text
 portfolio-projects/
-|-- Cybersecurity/
-|-- backend/
-|   `-- projects/
-|-- frontend/
-|-- machine_learning/
-|   `-- projects/
-`-- dsa-python/
+├── projects/
+│   ├── task-tracker/
+│   │   ├── frontend/       # React + Vite task board UI
+│   │   └── backend/        # FastAPI + Supabase CRUD API
+│   ├── code-review-ai/
+│   │   ├── frontend/       # Monaco editor + AI review UI
+│   │   └── backend/        # FastAPI + Gemini LLM API
+│   ├── news-aggregator/
+│   │   ├── frontend/       # React news search UI
+│   │   └── backend/        # FastAPI async news API
+│   └── bento-dashboard/    # React dashboard with charts
+├── Cybersecurity/
+├── machine_learning/
+└── dsa-python/
 ```
 
 ## Notes
 
-- API keys are required for external-provider projects (NewsAPI and Gemini).
+- API keys/credentials are required for external-provider projects (NewsAPI, Gemini, and Supabase where applicable).
 - Large/generated artifacts are intentionally ignored from version control.
 - This repo is continuously improved; each project folder has its own README with details.
