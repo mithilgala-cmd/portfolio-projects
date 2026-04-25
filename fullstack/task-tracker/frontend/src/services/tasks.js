@@ -7,10 +7,18 @@ const client = axios.create({
   timeout: 10000,
 })
 
-export async function fetchTasks(status = null) {
-  const params = status ? { status } : {}
+/**
+ * Fetch paginated tasks with optional filters.
+ * Returns the full PaginatedResponse: { items, total, page, size, pages }
+ */
+export async function fetchTasks({ status = null, priority = null, page = 1, size = 50 } = {}) {
+  const params = {}
+  if (status)   params.status   = status
+  if (priority) params.priority = priority
+  if (page)     params.page     = page
+  if (size)     params.size     = size
   const response = await client.get('/tasks', { params })
-  return response.data
+  return response.data   // PaginatedResponse
 }
 
 export async function getTask(taskId) {

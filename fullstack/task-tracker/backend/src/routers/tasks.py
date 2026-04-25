@@ -1,60 +1,65 @@
-"""Task CRUD endpoints."""
+"""Task HTTP endpoints.
+
+This router is intentionally thin: it handles HTTP concerns only
+(request parsing, status codes, responses) and delegates all
+business logic to ``src.services.task_service``.
+"""
 
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Query, Response, status
+from fastapi import APIRouter, Query, Response, status
 
-from src.models import Task, TaskCreate, TaskStatus, TaskStatusUpdate, TaskUpdate
-from src.store import task_store
+from src.models import (
+    PaginatedResponse,
+    Task,
+    TaskCreate,
+    TaskPriority,
+    TaskStatus,
+    TaskStatusUpdate,
+    TaskUpdate,
+)
+from src.services import task_service
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 
-@router.get("", response_model=list[Task])
+@router.get("", response_model=PaginatedResponse[Task], summary="List tasks")
 def list_tasks(
-    status: Optional[TaskStatus] = Query(default=None, description="Filter by task status"),
-) -> list[Task]:
-    """Return all tasks, optionally filtered by status."""
-    return task_store.list_tasks(status=status)
+    status: Optional[TaskStatus] = Query(default=None, description="Filter by status"),
+    priority: Optional[TaskPriority] = Query(default=None, description="Filter by priority"),
+    page: int = Query(default=1, ge=1, description="Page number (1-indexed)"),
+    size: int = Query(default=20, ge=1, le=100, description="Items per page"),
+) -> PaginatedResponse[Task]:
+    """Return a paginated list of tasks with optional status and priority filters."""
+    return task_service.list_tasks(status=status, priority=priority, page=page, size=size)
 
 
-@router.get("/{task_id}", response_model=Task)
+@router.get("/{task_id}", response_model=Task, summary="Get task")
 def get_task(task_id: int) -> Task:
     """Return a single task by ID."""
-    task = task_store.get_task(task_id)
-    if task is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
-    return task
+    return task_service.get_task(task_id)
 
 
-@router.post("", response_model=Task, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=Task, status_code=status.HTTP_201_CREATED, summary="Create task")
 def create_task(payload: TaskCreate) -> Task:
     """Create a new task."""
-    return task_store.create_task(payload)
+    return task_service.create_task(payload)
 
 
-@router.patch("/{task_id}", response_model=Task)
+@router.patch("/{task_id}", response_model=Task, summary="Update task")
 def update_task(task_id: int, payload: TaskUpdate) -> Task:
-    """Update a task's title, description, and/or priority."""
-    task = task_store.update_task(task_id=task_id, payload=payload)
-    if task is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
-    return task
+    """Partially update a task's title, description, and/or priority."""
+    return task_service.update_task(task_id, payload)
 
 
-@router.patch("/{task_id}/status", response_model=Task)
+@router.patch("/{task_id}/status", response_model=Task, summary="Update task status")
 def update_task_status(task_id: int, payload: TaskStatusUpdate) -> Task:
-    """Update the status for a task."""
-    task = task_store.update_status(task_id=task_id, status=payload.status)
-    if task is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
-    return task
+    """Move a task through its status workflow."""
+    return task_service.update_task_status(task_id, payload)
 
 
-@router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete task")
 def delete_task(task_id: int) -> Response:
-    """Delete a task by ID."""
-    deleted = task_store.delete_task(task_id)
-    if not deleted:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    """Permanently delete a task."""
+    task_service.delete_task(task_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

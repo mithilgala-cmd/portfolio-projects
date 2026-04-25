@@ -296,7 +296,7 @@ body {
    ============================================================ */
 .filter-bar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.75rem;
   margin-top: 1rem;
   flex-wrap: wrap;
@@ -353,7 +353,23 @@ body {
 
 .search-clear:hover { color: var(--ink); }
 
-.status-tabs {
+/* Filter groups (Status, Priority) */
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.filter-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  padding-left: 2px;
+}
+
+.tab-group {
   display: flex;
   gap: 0.3rem;
   background: rgba(255,255,255,0.6);
@@ -362,13 +378,13 @@ body {
   padding: 3px;
 }
 
-.status-tab {
+.tab-btn {
   border: none;
   background: transparent;
   border-radius: 7px;
-  padding: 0.38rem 0.75rem;
+  padding: 0.35rem 0.72rem;
   font: inherit;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--muted);
   cursor: pointer;
@@ -376,13 +392,18 @@ body {
   white-space: nowrap;
 }
 
-.status-tab.active {
+.tab-btn.active {
   background: #fff;
   color: var(--ink);
   box-shadow: var(--shadow-sm);
 }
 
-.status-tab:hover:not(.active) { color: var(--ink); }
+.tab-btn:hover:not(.active) { color: var(--ink); }
+
+/* Priority tab accent colours when active */
+.tab-btn--high.active   { color: #bf4f46; }
+.tab-btn--medium.active { color: #b1721f; }
+.tab-btn--low.active    { color: #2f9f6e; }
 
 /* ============================================================
    Banners
@@ -763,6 +784,6 @@ body {
 @media (max-width: 700px) {
   .composer { grid-template-columns: 1fr; }
   .filter-bar { flex-direction: column; align-items: stretch; }
-  .status-tabs { overflow-x: auto; }
+  .tab-group { overflow-x: auto; }
   .modal-actions { flex-direction: column-reverse; }
 }

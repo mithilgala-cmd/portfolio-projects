@@ -1,4 +1,8 @@
-"""Tests for task endpoints."""
+"""Tests for task endpoints.
+
+All tests use the in_memory store (forced by conftest.py) so no
+external services are needed.
+"""
 
 import pytest
 from fastapi.testclient import TestClient
@@ -17,13 +21,27 @@ def reset_store() -> None:
 
 
 # ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _create(title: str = "Test task", priority: str = "medium") -> dict:
+    r = client.post("/tasks", json={"title": title, "priority": priority})
+    assert r.status_code == 201
+    return r.json()
+
+
+def _list(**params) -> dict:
+    r = client.get("/tasks", params=params)
+    assert r.status_code == 200
+    return r.json()
+
+
+# ---------------------------------------------------------------------------
 # Create
 # ---------------------------------------------------------------------------
 
 def test_create_task_returns_201() -> None:
-    response = client.post("/tasks", json={"title": "Write README", "description": "Project notes"})
-    assert response.status_code == 201
-    data = response.json()
+    data = _create("Write README")
     assert data["id"] == 1
     assert data["title"] == "Write README"
     assert data["status"] == "todo"
@@ -31,46 +49,85 @@ def test_create_task_returns_201() -> None:
 
 
 def test_create_task_with_priority() -> None:
-    response = client.post("/tasks", json={"title": "Urgent fix", "priority": "high"})
-    assert response.status_code == 201
-    assert response.json()["priority"] == "high"
+    data = _create("Urgent fix", priority="high")
+    assert data["priority"] == "high"
 
 
 def test_create_task_empty_title_rejected() -> None:
-    response = client.post("/tasks", json={"title": "", "description": ""})
-    assert response.status_code == 422
+    r = client.post("/tasks", json={"title": ""})
+    assert r.status_code == 422
 
 
 def test_create_task_title_too_long_rejected() -> None:
-    response = client.post("/tasks", json={"title": "x" * 121})
-    assert response.status_code == 422
+    r = client.post("/tasks", json={"title": "x" * 121})
+    assert r.status_code == 422
 
 
 # ---------------------------------------------------------------------------
-# List / Filter
+# List / pagination
 # ---------------------------------------------------------------------------
 
-def test_list_tasks_contains_created_task() -> None:
-    client.post("/tasks", json={"title": "Task one", "description": ""})
-    response = client.get("/tasks")
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data) == 1
-    assert data[0]["title"] == "Task one"
+def test_list_returns_paginated_response() -> None:
+    _create("A")
+    _create("B")
+    data = _list()
+    assert "items" in data
+    assert "total" in data
+    assert "page" in data
+    assert "pages" in data
+    assert data["total"] == 2
+    assert len(data["items"]) == 2
 
+
+def test_list_pagination() -> None:
+    for i in range(5):
+        _create(f"Task {i}")
+    page1 = _list(page=1, size=3)
+    page2 = _list(page=2, size=3)
+    assert len(page1["items"]) == 3
+    assert len(page2["items"]) == 2
+    assert page1["total"] == 5
+    assert page1["pages"] == 2
+
+
+# ---------------------------------------------------------------------------
+# Filtering
+# ---------------------------------------------------------------------------
 
 def test_filter_tasks_by_status() -> None:
-    created = client.post("/tasks", json={"title": "Task A"}).json()
-    client.patch(f"/tasks/{created['id']}/status", json={"status": "in_progress"})
-    client.post("/tasks", json={"title": "Task B"})  # stays todo
+    task = _create("Task A")
+    client.patch(f"/tasks/{task['id']}/status", json={"status": "in_progress"})
+    _create("Task B")  # stays todo
 
-    in_progress = client.get("/tasks?status=in_progress").json()
-    todo = client.get("/tasks?status=todo").json()
+    in_prog = _list(status="in_progress")
+    todo = _list(status="todo")
 
-    assert len(in_progress) == 1
-    assert in_progress[0]["title"] == "Task A"
-    assert len(todo) == 1
-    assert todo[0]["title"] == "Task B"
+    assert len(in_prog["items"]) == 1
+    assert in_prog["items"][0]["title"] == "Task A"
+    assert len(todo["items"]) == 1
+    assert todo["items"][0]["title"] == "Task B"
+
+
+def test_filter_tasks_by_priority() -> None:
+    _create("High task", priority="high")
+    _create("Low task", priority="low")
+
+    highs = _list(priority="high")
+    lows = _list(priority="low")
+
+    assert len(highs["items"]) == 1
+    assert highs["items"][0]["title"] == "High task"
+    assert len(lows["items"]) == 1
+
+
+def test_filter_by_status_and_priority() -> None:
+    t1 = _create("High todo", priority="high")
+    t2 = _create("High done", priority="high")
+    client.patch(f"/tasks/{t2['id']}/status", json={"status": "done"})
+
+    result = _list(status="todo", priority="high")
+    assert result["total"] == 1
+    assert result["items"][0]["id"] == t1["id"]
 
 
 # ---------------------------------------------------------------------------
@@ -78,15 +135,14 @@ def test_filter_tasks_by_status() -> None:
 # ---------------------------------------------------------------------------
 
 def test_get_single_task_returns_200() -> None:
-    created = client.post("/tasks", json={"title": "Solo task"}).json()
-    response = client.get(f"/tasks/{created['id']}")
-    assert response.status_code == 200
-    assert response.json()["title"] == "Solo task"
+    task = _create("Solo task")
+    r = client.get(f"/tasks/{task['id']}")
+    assert r.status_code == 200
+    assert r.json()["title"] == "Solo task"
 
 
 def test_get_missing_task_returns_404() -> None:
-    response = client.get("/tasks/999")
-    assert response.status_code == 404
+    assert client.get("/tasks/999").status_code == 404
 
 
 # ---------------------------------------------------------------------------
@@ -94,29 +150,28 @@ def test_get_missing_task_returns_404() -> None:
 # ---------------------------------------------------------------------------
 
 def test_update_task_title() -> None:
-    created = client.post("/tasks", json={"title": "Old title"}).json()
-    response = client.patch(f"/tasks/{created['id']}", json={"title": "New title"})
-    assert response.status_code == 200
-    assert response.json()["title"] == "New title"
+    task = _create("Old title")
+    r = client.patch(f"/tasks/{task['id']}", json={"title": "New title"})
+    assert r.status_code == 200
+    assert r.json()["title"] == "New title"
 
 
 def test_update_task_description() -> None:
-    created = client.post("/tasks", json={"title": "Task"}).json()
-    response = client.patch(f"/tasks/{created['id']}", json={"description": "Updated desc"})
-    assert response.status_code == 200
-    assert response.json()["description"] == "Updated desc"
+    task = _create("Task")
+    r = client.patch(f"/tasks/{task['id']}", json={"description": "Updated desc"})
+    assert r.status_code == 200
+    assert r.json()["description"] == "Updated desc"
 
 
 def test_update_task_priority() -> None:
-    created = client.post("/tasks", json={"title": "Task", "priority": "low"}).json()
-    response = client.patch(f"/tasks/{created['id']}", json={"priority": "high"})
-    assert response.status_code == 200
-    assert response.json()["priority"] == "high"
+    task = _create("Task", priority="low")
+    r = client.patch(f"/tasks/{task['id']}", json={"priority": "high"})
+    assert r.status_code == 200
+    assert r.json()["priority"] == "high"
 
 
 def test_update_missing_task_returns_404() -> None:
-    response = client.patch("/tasks/999", json={"title": "Ghost"})
-    assert response.status_code == 404
+    assert client.patch("/tasks/999", json={"title": "Ghost"}).status_code == 404
 
 
 # ---------------------------------------------------------------------------
@@ -124,21 +179,19 @@ def test_update_missing_task_returns_404() -> None:
 # ---------------------------------------------------------------------------
 
 def test_update_status_changes_task() -> None:
-    created = client.post("/tasks", json={"title": "Task two", "description": ""}).json()
-    response = client.patch(f"/tasks/{created['id']}/status", json={"status": "in_progress"})
-    assert response.status_code == 200
-    assert response.json()["status"] == "in_progress"
+    task = _create("Task two")
+    r = client.patch(f"/tasks/{task['id']}/status", json={"status": "in_progress"})
+    assert r.status_code == 200
+    assert r.json()["status"] == "in_progress"
 
 
 def test_update_status_missing_task_returns_404() -> None:
-    response = client.patch("/tasks/999/status", json={"status": "done"})
-    assert response.status_code == 404
+    assert client.patch("/tasks/999/status", json={"status": "done"}).status_code == 404
 
 
 def test_update_status_invalid_value_rejected() -> None:
-    created = client.post("/tasks", json={"title": "Task"}).json()
-    response = client.patch(f"/tasks/{created['id']}/status", json={"status": "flying"})
-    assert response.status_code == 422
+    task = _create("Task")
+    assert client.patch(f"/tasks/{task['id']}/status", json={"status": "flying"}).status_code == 422
 
 
 # ---------------------------------------------------------------------------
@@ -146,12 +199,11 @@ def test_update_status_invalid_value_rejected() -> None:
 # ---------------------------------------------------------------------------
 
 def test_delete_task_returns_204() -> None:
-    created = client.post("/tasks", json={"title": "Task three", "description": ""}).json()
-    response = client.delete(f"/tasks/{created['id']}")
-    assert response.status_code == 204
-    assert client.get("/tasks").json() == []
+    task = _create("Task three")
+    r = client.delete(f"/tasks/{task['id']}")
+    assert r.status_code == 204
+    assert _list()["total"] == 0
 
 
 def test_delete_missing_task_returns_404() -> None:
-    response = client.delete("/tasks/999")
-    assert response.status_code == 404
+    assert client.delete("/tasks/999").status_code == 404

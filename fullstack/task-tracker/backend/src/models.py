@@ -1,11 +1,14 @@
-"""Pydantic models for tasks."""
+"""Pydantic models / schemas for tasks."""
 
 from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import Generic, Optional, TypeVar
 
 from pydantic import BaseModel, Field
 
+# ---------------------------------------------------------------------------
+# Enums
+# ---------------------------------------------------------------------------
 
 class TaskStatus(str, Enum):
     """Valid task lifecycle states."""
@@ -23,16 +26,20 @@ class TaskPriority(str, Enum):
     HIGH = "high"
 
 
+# ---------------------------------------------------------------------------
+# Request schemas
+# ---------------------------------------------------------------------------
+
 class TaskCreate(BaseModel):
     """Payload for creating a task."""
 
-    title: str = Field(..., min_length=1, max_length=120)
-    description: str = Field(default="", max_length=500)
+    title: str = Field(..., min_length=1, max_length=120, examples=["Fix login bug"])
+    description: str = Field(default="", max_length=500, examples=["Investigate OAuth callback"])
     priority: TaskPriority = Field(default=TaskPriority.MEDIUM)
 
 
 class TaskUpdate(BaseModel):
-    """Payload for partial task update (title, description, priority)."""
+    """Payload for partial task update (all fields optional)."""
 
     title: Optional[str] = Field(default=None, min_length=1, max_length=120)
     description: Optional[str] = Field(default=None, max_length=500)
@@ -40,13 +47,17 @@ class TaskUpdate(BaseModel):
 
 
 class TaskStatusUpdate(BaseModel):
-    """Payload for updating task status."""
+    """Payload for updating task status only."""
 
     status: TaskStatus
 
 
+# ---------------------------------------------------------------------------
+# Response schemas
+# ---------------------------------------------------------------------------
+
 class Task(BaseModel):
-    """Task response model."""
+    """Full task response model."""
 
     id: int
     title: str
@@ -55,3 +66,16 @@ class Task(BaseModel):
     priority: TaskPriority
     created_at: datetime
     updated_at: datetime
+
+
+T = TypeVar("T")
+
+
+class PaginatedResponse(BaseModel, Generic[T]):
+    """Generic paginated list wrapper."""
+
+    items: list[T]
+    total: int
+    page: int
+    size: int
+    pages: int

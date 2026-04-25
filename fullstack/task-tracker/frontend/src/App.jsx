@@ -11,23 +11,36 @@ const STATUS_GROUPS = [
   { key: 'done',        title: 'Delivered', accent: '#56bf8c' },
 ]
 
+const STATUS_TABS    = ['all', 'todo', 'in_progress', 'done']
+const PRIORITY_TABS  = ['all', 'high', 'medium', 'low']
+
+function tabLabel(value, type) {
+  if (value === 'all') return 'All'
+  if (value === 'in_progress') return 'In Progress'
+  return value.charAt(0).toUpperCase() + value.slice(1)
+}
+
 function App() {
-  const [tasks, setTasks]           = useState([])
-  const [loading, setLoading]       = useState(true)
-  const [submitting, setSubmitting] = useState(false)
-  const [saving, setSaving]         = useState(false)
-  const [error, setError]           = useState('')
-  const [success, setSuccess]       = useState('')
-  const [editingTask, setEditingTask] = useState(null)
-  const [search, setSearch]         = useState('')
+  const [tasks, setTasks]               = useState([])
+  const [loading, setLoading]           = useState(true)
+  const [submitting, setSubmitting]     = useState(false)
+  const [saving, setSaving]             = useState(false)
+  const [error, setError]               = useState('')
+  const [success, setSuccess]           = useState('')
+  const [editingTask, setEditingTask]   = useState(null)
+  const [search, setSearch]             = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [priorityFilter, setPriorityFilter] = useState('all')
+  const [totalCount, setTotalCount]     = useState(0)
 
   const loadTasks = useCallback(async () => {
     setLoading(true)
     setError('')
     try {
-      const data = await fetchTasks()
-      setTasks(data)
+      // Load all tasks for the board; server-side filters handled as needed
+      const data = await fetchTasks({ size: 200 })
+      setTasks(data.items)
+      setTotalCount(data.total)
     } catch {
       setError('Unable to reach the Task Tracker API. Make sure the backend is running.')
     } finally {
@@ -51,6 +64,7 @@ function App() {
     try {
       const created = await createTask(payload)
       setTasks((cur) => [...cur, created])
+      setTotalCount((n) => n + 1)
       setSuccess('Task added successfully.')
     } catch {
       setError('Could not create task. Please try again.')
@@ -77,6 +91,7 @@ function App() {
     try {
       await deleteTask(taskId)
       setTasks((cur) => cur.filter((t) => t.id !== taskId))
+      setTotalCount((n) => n - 1)
       setSuccess('Task deleted.')
     } catch {
       setError('Delete failed. Please retry.')
@@ -107,28 +122,30 @@ function App() {
     return { total, done, inProgress, completion }
   }, [tasks])
 
-  // Client-side filter (search + status filter)
+  // Client-side filtering (search + status + priority)
   const filteredTasks = useMemo(() => {
     const q = search.trim().toLowerCase()
     return tasks.filter((t) => {
-      const matchesSearch = !q || t.title.toLowerCase().includes(q) || t.description.toLowerCase().includes(q)
-      const matchesStatus = statusFilter === 'all' || t.status === statusFilter
-      return matchesSearch && matchesStatus
+      const matchSearch   = !q || t.title.toLowerCase().includes(q) || t.description.toLowerCase().includes(q)
+      const matchStatus   = statusFilter   === 'all' || t.status   === statusFilter
+      const matchPriority = priorityFilter === 'all' || t.priority === priorityFilter
+      return matchSearch && matchStatus && matchPriority
     })
-  }, [tasks, search, statusFilter])
+  }, [tasks, search, statusFilter, priorityFilter])
 
   return (
     <div className="app-shell">
       <div className="background-layer" />
       <main className="app-content">
-        {/* Header */}
+
+        {/* ── Header ── */}
         <header className="hero">
           <div className="hero-copy">
             <p className="eyebrow">Task Tracker Pro</p>
             <h1>Free tooling, premium execution.</h1>
             <p>
-              A full-stack task board powered by FastAPI + Supabase. Create tasks, set
-              priority, move them across stages, and edit on the fly.
+              A full-stack Kanban board powered by FastAPI + Supabase. Create tasks,
+              set priority, move them across stages, and edit on the fly.
             </p>
           </div>
           <div className="stats-grid">
@@ -150,12 +167,13 @@ function App() {
           </div>
         </header>
 
-        {/* Workspace */}
+        {/* ── Workspace ── */}
         <section className="workspace">
           <TaskComposer onCreate={handleCreate} isSubmitting={submitting} />
 
           {/* Filter bar */}
           <div className="filter-bar">
+            {/* Search */}
             <div className="search-wrap">
               <Search size={15} className="search-icon" />
               <input
@@ -172,26 +190,44 @@ function App() {
                 </button>
               )}
             </div>
-            <div className="status-tabs">
-              {['all', 'todo', 'in_progress', 'done'].map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  className={`status-tab${statusFilter === s ? ' active' : ''}`}
-                  onClick={() => setStatusFilter(s)}
-                >
-                  {s === 'all' ? 'All' : s === 'in_progress' ? 'In Progress' : s.charAt(0).toUpperCase() + s.slice(1)}
-                </button>
-              ))}
+
+            {/* Status tabs */}
+            <div className="filter-group">
+              <span className="filter-label">Status</span>
+              <div className="tab-group">
+                {STATUS_TABS.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    className={`tab-btn${statusFilter === s ? ' active' : ''}`}
+                    onClick={() => setStatusFilter(s)}
+                  >
+                    {tabLabel(s)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Priority tabs */}
+            <div className="filter-group">
+              <span className="filter-label">Priority</span>
+              <div className="tab-group">
+                {PRIORITY_TABS.map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    className={`tab-btn tab-btn--${p}${priorityFilter === p ? ' active' : ''}`}
+                    onClick={() => setPriorityFilter(p)}
+                  >
+                    {tabLabel(p)}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Banners */}
-          {error && (
-            <div className="banner error">
-              <AlertTriangle size={16} /> {error}
-            </div>
-          )}
+          {error   && <div className="banner error"><AlertTriangle size={16} /> {error}</div>}
           {success && <div className="banner success">{success}</div>}
 
           {/* Board */}
@@ -218,7 +254,7 @@ function App() {
         </section>
       </main>
 
-      {/* Edit Modal */}
+      {/* Edit modal */}
       {editingTask && (
         <EditTaskModal
           task={editingTask}
