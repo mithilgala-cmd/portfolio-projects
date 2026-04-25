@@ -38,7 +38,7 @@ function App() {
     setError('')
     try {
       // Load all tasks for the board; server-side filters handled as needed
-      const data = await fetchTasks({ size: 200 })
+      const data = await fetchTasks({ size: 100 })
       setTasks(data.items)
       setTotalCount(data.total)
     } catch {
