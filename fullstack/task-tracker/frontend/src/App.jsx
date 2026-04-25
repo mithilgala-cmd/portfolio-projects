@@ -1,21 +1,26 @@
-import { AlertTriangle, CheckCircle2, ListTodo, Timer } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, ListTodo, Search, Timer, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import EditTaskModal from './components/EditTaskModal'
 import TaskColumn from './components/TaskColumn'
 import TaskComposer from './components/TaskComposer'
-import { createTask, deleteTask, fetchTasks, updateTaskStatus } from './services/tasks'
+import { createTask, deleteTask, fetchTasks, updateTask, updateTaskStatus } from './services/tasks'
 
 const STATUS_GROUPS = [
-  { key: 'todo', title: 'Planned', accent: '#ff8f6f' },
+  { key: 'todo',        title: 'Planned',   accent: '#ff8f6f' },
   { key: 'in_progress', title: 'In Motion', accent: '#f5b85d' },
-  { key: 'done', title: 'Delivered', accent: '#56bf8c' },
+  { key: 'done',        title: 'Delivered', accent: '#56bf8c' },
 ]
 
 function App() {
-  const [tasks, setTasks] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [tasks, setTasks]           = useState([])
+  const [loading, setLoading]       = useState(true)
   const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
+  const [saving, setSaving]         = useState(false)
+  const [error, setError]           = useState('')
+  const [success, setSuccess]       = useState('')
+  const [editingTask, setEditingTask] = useState(null)
+  const [search, setSearch]         = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
 
   const loadTasks = useCallback(async () => {
     setLoading(true)
@@ -24,15 +29,20 @@ function App() {
       const data = await fetchTasks()
       setTasks(data)
     } catch {
-      setError('Unable to reach the Task Tracker API. Make sure backend is running.')
+      setError('Unable to reach the Task Tracker API. Make sure the backend is running.')
     } finally {
       setLoading(false)
     }
   }, [])
 
+  useEffect(() => { void loadTasks() }, [loadTasks])
+
+  // Auto-clear banners after 3 s
   useEffect(() => {
-    void loadTasks()
-  }, [loadTasks])
+    if (!success && !error) return
+    const t = setTimeout(() => { setSuccess(''); setError('') }, 3000)
+    return () => clearTimeout(t)
+  }, [success, error])
 
   async function handleCreate(payload) {
     setSubmitting(true)
@@ -40,7 +50,7 @@ function App() {
     setSuccess('')
     try {
       const created = await createTask(payload)
-      setTasks((current) => [...current, created])
+      setTasks((cur) => [...cur, created])
       setSuccess('Task added successfully.')
     } catch {
       setError('Could not create task. Please try again.')
@@ -54,10 +64,10 @@ function App() {
     setSuccess('')
     try {
       const updated = await updateTaskStatus(taskId, status)
-      setTasks((current) => current.map((task) => (task.id === taskId ? updated : task)))
-      setSuccess('Task status updated.')
+      setTasks((cur) => cur.map((t) => (t.id === taskId ? updated : t)))
+      setSuccess('Status updated.')
     } catch {
-      setError('Status update failed. Refresh and try again.')
+      setError('Status update failed. Please retry.')
     }
   }
 
@@ -66,70 +76,130 @@ function App() {
     setSuccess('')
     try {
       await deleteTask(taskId)
-      setTasks((current) => current.filter((task) => task.id !== taskId))
+      setTasks((cur) => cur.filter((t) => t.id !== taskId))
       setSuccess('Task deleted.')
     } catch {
       setError('Delete failed. Please retry.')
     }
   }
 
+  async function handleUpdate(taskId, payload) {
+    setSaving(true)
+    setError('')
+    setSuccess('')
+    try {
+      const updated = await updateTask(taskId, payload)
+      setTasks((cur) => cur.map((t) => (t.id === taskId ? updated : t)))
+      setSuccess('Task updated.')
+      setEditingTask(null)
+    } catch {
+      setError('Update failed. Please retry.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const stats = useMemo(() => {
-    const total = tasks.length
-    const done = tasks.filter((task) => task.status === 'done').length
-    const inProgress = tasks.filter((task) => task.status === 'in_progress').length
+    const total      = tasks.length
+    const done       = tasks.filter((t) => t.status === 'done').length
+    const inProgress = tasks.filter((t) => t.status === 'in_progress').length
     const completion = total === 0 ? 0 : Math.round((done / total) * 100)
     return { total, done, inProgress, completion }
   }, [tasks])
+
+  // Client-side filter (search + status filter)
+  const filteredTasks = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return tasks.filter((t) => {
+      const matchesSearch = !q || t.title.toLowerCase().includes(q) || t.description.toLowerCase().includes(q)
+      const matchesStatus = statusFilter === 'all' || t.status === statusFilter
+      return matchesSearch && matchesStatus
+    })
+  }, [tasks, search, statusFilter])
 
   return (
     <div className="app-shell">
       <div className="background-layer" />
       <main className="app-content">
+        {/* Header */}
         <header className="hero">
           <div className="hero-copy">
             <p className="eyebrow">Task Tracker Pro</p>
             <h1>Free tooling, premium execution.</h1>
             <p>
-              This React client is designed to work with your FastAPI + Supabase backend and gives a
-              modern workspace for planning, execution, and delivery.
+              A full-stack task board powered by FastAPI + Supabase. Create tasks, set
+              priority, move them across stages, and edit on the fly.
             </p>
           </div>
           <div className="stats-grid">
             <article>
-              <span>
-                <ListTodo size={16} /> Total Tasks
-              </span>
+              <span><ListTodo size={16} /> Total Tasks</span>
               <strong>{stats.total}</strong>
             </article>
             <article>
-              <span>
-                <Timer size={16} /> In Motion
-              </span>
+              <span><Timer size={16} /> In Motion</span>
               <strong>{stats.inProgress}</strong>
             </article>
             <article>
-              <span>
-                <CheckCircle2 size={16} /> Completion
-              </span>
+              <span><CheckCircle2 size={16} /> Completion</span>
               <strong>{stats.completion}%</strong>
+              <div className="progress-bar">
+                <div className="progress-fill" style={{ width: `${stats.completion}%` }} />
+              </div>
             </article>
           </div>
         </header>
 
+        {/* Workspace */}
         <section className="workspace">
           <TaskComposer onCreate={handleCreate} isSubmitting={submitting} />
 
+          {/* Filter bar */}
+          <div className="filter-bar">
+            <div className="search-wrap">
+              <Search size={15} className="search-icon" />
+              <input
+                id="task-search"
+                type="text"
+                className="search-input"
+                placeholder="Search tasks…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              {search && (
+                <button className="search-clear" type="button" onClick={() => setSearch('')} aria-label="Clear search">
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+            <div className="status-tabs">
+              {['all', 'todo', 'in_progress', 'done'].map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  className={`status-tab${statusFilter === s ? ' active' : ''}`}
+                  onClick={() => setStatusFilter(s)}
+                >
+                  {s === 'all' ? 'All' : s === 'in_progress' ? 'In Progress' : s.charAt(0).toUpperCase() + s.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Banners */}
           {error && (
             <div className="banner error">
-              <AlertTriangle size={16} />
-              {error}
+              <AlertTriangle size={16} /> {error}
             </div>
           )}
-
           {success && <div className="banner success">{success}</div>}
 
+          {/* Board */}
           {loading ? (
-            <div className="loading">Loading tasks...</div>
+            <div className="loading">
+              <span className="loading-spinner" />
+              Loading tasks…
+            </div>
           ) : (
             <div className="board">
               {STATUS_GROUPS.map((group) => (
@@ -137,15 +207,26 @@ function App() {
                   key={group.key}
                   title={group.title}
                   accent={group.accent}
-                  tasks={tasks.filter((task) => task.status === group.key)}
+                  tasks={filteredTasks.filter((t) => t.status === group.key)}
                   onStatusChange={handleStatusChange}
                   onDelete={handleDelete}
+                  onEdit={setEditingTask}
                 />
               ))}
             </div>
           )}
         </section>
       </main>
+
+      {/* Edit Modal */}
+      {editingTask && (
+        <EditTaskModal
+          task={editingTask}
+          onSave={handleUpdate}
+          onClose={() => setEditingTask(null)}
+          isSaving={saving}
+        />
+      )}
     </div>
   )
 }

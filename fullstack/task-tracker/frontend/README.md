@@ -1,29 +1,47 @@
-# Task Tracker Pro Frontend
+# Task Tracker Pro — Frontend
 
-Premium-style React frontend for `backend/projects/task_tracker_api`.
+A premium React frontend for the Task Tracker API. Features a 3-column Kanban board with live task management, priority badges, inline editing, and real-time search filtering.
 
-## Highlights
+## Features
 
-- Modern 3-column board (`Planned`, `In Motion`, `Delivered`)
-- Create, update status, and delete task actions
-- Live task stats (total, in progress, completion rate)
-- Responsive layout with polished gradients and motion
-- API-based architecture with configurable base URL
+- ✅ 3-column Kanban board — Planned / In Motion / Delivered
+- ✅ Create tasks with title, description, and priority
+- ✅ Edit tasks inline via a polished modal
+- ✅ Priority badges — High 🔴 / Medium 🟡 / Low 🟢
+- ✅ Search bar — filter by title or description live
+- ✅ Status tab filter — view all / todo / in_progress / done
+- ✅ One-click status change per card
+- ✅ Delete with instant optimistic UI update
+- ✅ Live stats — total, in-motion, completion % with progress bar
+- ✅ Auto-dismissing success/error banners
+- ✅ Fully responsive (mobile → desktop)
+
+## Tech Stack
+
+| Layer     | Technology           |
+|-----------|----------------------|
+| Framework | React 19 + Vite 8    |
+| HTTP      | Axios                |
+| Icons     | Lucide React         |
+| Fonts     | Google Fonts (Manrope, Sora) |
+| Styling   | Vanilla CSS          |
 
 ## Setup
 
 ```bash
-cd frontend/task-tracker-pro
+cd fullstack/task-tracker/frontend
 npm install
-copy .env.example .env
+cp .env.example .env   # set VITE_TASK_API_BASE_URL if needed
 npm run dev
 ```
 
-By default it calls `http://localhost:8002`.
+The frontend connects to `http://localhost:8002` by default.
 
-## Environment
+## Environment Variables
 
-- `VITE_TASK_API_BASE_URL` : Task Tracker API base URL
+| Variable                  | Default                   | Description              |
+|---------------------------|---------------------------|--------------------------|
+| `VITE_TASK_API_BASE_URL`  | `http://localhost:8002`   | Task Tracker API base URL |
 
 ## Build
 

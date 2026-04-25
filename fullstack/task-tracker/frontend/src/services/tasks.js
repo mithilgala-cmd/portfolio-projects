@@ -7,13 +7,24 @@ const client = axios.create({
   timeout: 10000,
 })
 
-export async function fetchTasks() {
-  const response = await client.get('/tasks')
+export async function fetchTasks(status = null) {
+  const params = status ? { status } : {}
+  const response = await client.get('/tasks', { params })
+  return response.data
+}
+
+export async function getTask(taskId) {
+  const response = await client.get(`/tasks/${taskId}`)
   return response.data
 }
 
 export async function createTask(payload) {
   const response = await client.post('/tasks', payload)
+  return response.data
+}
+
+export async function updateTask(taskId, payload) {
+  const response = await client.patch(`/tasks/${taskId}`, payload)
   return response.data
 }
 

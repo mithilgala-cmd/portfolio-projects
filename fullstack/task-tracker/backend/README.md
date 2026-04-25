@@ -1,73 +1,89 @@
 # Task Tracker API
 
-A FastAPI task management API that uses Supabase as the database backend (with local in-memory fallback for development/tests).
+A production-style FastAPI REST API for task management with Supabase persistence and an in-memory fallback for local development and testing.
 
 ## Features
 
-- Supabase-backed task persistence
-- Task CRUD with status workflow (`todo`, `in_progress`, `done`)
-- Environment-driven storage mode (`supabase` or `in_memory`)
-- Health endpoint with backend metadata
-- Unit tests for endpoint behavior
+- ✅ Full CRUD — create, read, update, delete tasks
+- ✅ Priority levels — `low`, `medium`, `high` per task
+- ✅ Status workflow — `todo → in_progress → done`
+- ✅ Status filter — `GET /tasks?status=todo`
+- ✅ Dual persistence — Supabase (Postgres) in production, in-memory for dev/tests
+- ✅ Auto-timestamp — `updated_at` managed by a DB trigger
+- ✅ 20+ unit tests with `pytest`
 
 ## Tech Stack
 
-- Python
-- FastAPI
-- Supabase (Postgres)
-- Pydantic
-- pytest
+| Layer       | Technology              |
+|-------------|-------------------------|
+| Framework   | FastAPI                 |
+| Database    | Supabase (PostgreSQL)   |
+| Validation  | Pydantic v2             |
+| Testing     | pytest + httpx          |
+| Config      | python-dotenv           |
 
 ## Project Layout
 
 ```text
-task_tracker_api/
-|-- src/
-|   |-- main.py
-|   |-- config.py
-|   |-- models.py
-|   |-- store.py
-|   `-- routers/
-|-- supabase/
-|   `-- schema.sql
-|-- tests/
-|-- .env.example
-`-- requirements.txt
+backend/
+├── src/
+│   ├── main.py        # App entry point, CORS, router wiring
+│   ├── config.py      # Env-driven configuration
+│   ├── models.py      # Pydantic models (Task, TaskCreate, TaskUpdate)
+│   ├── store.py       # InMemoryTaskStore + SupabaseTaskStore
+│   └── routers/
+│       ├── tasks.py   # Task CRUD endpoints
+│       └── health.py  # Health check
+├── supabase/
+│   └── schema.sql     # DB schema + migration snippet
+├── tests/
+│   ├── conftest.py
+│   ├── test_tasks.py  # 20 endpoint tests
+│   └── test_health.py
+├── .env.example
+└── requirements.txt
 ```
+
+## API Endpoints
+
+| Method   | Path                       | Description                        |
+|----------|----------------------------|------------------------------------|
+| `GET`    | `/health`                  | Service health + backend info      |
+| `GET`    | `/tasks`                   | List all tasks (optional `?status=`)|
+| `GET`    | `/tasks/{id}`              | Get a single task                  |
+| `POST`   | `/tasks`                   | Create a task                      |
+| `PATCH`  | `/tasks/{id}`              | Update title / description / priority |
+| `PATCH`  | `/tasks/{id}/status`       | Update task status                 |
+| `DELETE` | `/tasks/{id}`              | Delete a task                      |
 
 ## Supabase Setup
 
-1. Create a Supabase project.
-2. Run [`supabase/schema.sql`](supabase/schema.sql) in SQL Editor.
-3. Copy `.env.example` to `.env` and set:
-   - `SUPABASE_URL`
-   - `SUPABASE_SERVICE_ROLE_KEY`
+1. Create a Supabase project at [supabase.com](https://supabase.com).
+2. Run [`supabase/schema.sql`](supabase/schema.sql) in the SQL Editor.
+3. Copy `.env.example` → `.env` and fill in your credentials:
 
-Use service role key only in backend environments.
+```env
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+```
+
+> **Note:** If no credentials are provided the API automatically falls back to in-memory storage.
 
 ## Run Locally
 
 ```bash
-cd backend/projects/task_tracker_api
+cd fullstack/task-tracker/backend
 pip install -r requirements.txt
-copy .env.example .env
+cp .env.example .env   # fill in your Supabase credentials
 uvicorn src.main:app --reload --port 8002
 ```
 
-Docs: `http://127.0.0.1:8002/docs`
+Interactive docs: `http://127.0.0.1:8002/docs`
 
-## Test
+## Run Tests
 
 ```bash
 pytest tests -v
 ```
 
-Tests force `in_memory` mode automatically so they run without external services.
-
-## Main Endpoints
-
-- `GET /health`
-- `GET /tasks`
-- `POST /tasks`
-- `PATCH /tasks/{task_id}/status`
-- `DELETE /tasks/{task_id}`
+Tests always use the in-memory store (set by `conftest.py`) — no external services needed.

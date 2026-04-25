@@ -8,7 +8,7 @@ from threading import Lock
 from typing import Any, Protocol
 
 from src import config
-from src.models import Task, TaskCreate, TaskStatus
+from src.models import Task, TaskCreate, TaskPriority, TaskStatus, TaskUpdate
 
 try:
     from supabase import Client, create_client
@@ -24,11 +24,17 @@ class TaskStoreProtocol(Protocol):
 
     backend: str
 
-    def list_tasks(self) -> list[Task]:
-        """Return all tasks in stable order."""
+    def list_tasks(self, status: TaskStatus | None = None) -> list[Task]:
+        """Return all tasks, optionally filtered by status."""
+
+    def get_task(self, task_id: int) -> Task | None:
+        """Return a single task by id, or None if not found."""
 
     def create_task(self, payload: TaskCreate) -> Task:
         """Create a task and return the stored object."""
+
+    def update_task(self, task_id: int, payload: TaskUpdate) -> Task | None:
+        """Partially update a task's fields. Returns None if not found."""
 
     def update_status(self, task_id: int, status: TaskStatus) -> Task | None:
         """Update task status or return None if missing."""
@@ -50,9 +56,16 @@ class InMemoryTaskStore:
         self._next_id = 1
         self._tasks: dict[int, Task] = {}
 
-    def list_tasks(self) -> list[Task]:
+    def list_tasks(self, status: TaskStatus | None = None) -> list[Task]:
         with self._lock:
-            return [self._tasks[task_id] for task_id in sorted(self._tasks)]
+            tasks = [self._tasks[task_id] for task_id in sorted(self._tasks)]
+            if status is not None:
+                tasks = [t for t in tasks if t.status == status]
+            return tasks
+
+    def get_task(self, task_id: int) -> Task | None:
+        with self._lock:
+            return self._tasks.get(task_id)
 
     def create_task(self, payload: TaskCreate) -> Task:
         with self._lock:
@@ -62,6 +75,7 @@ class InMemoryTaskStore:
                 title=payload.title.strip(),
                 description=payload.description.strip(),
                 status=TaskStatus.TODO,
+                priority=payload.priority,
                 created_at=now,
                 updated_at=now,
             )
@@ -69,12 +83,27 @@ class InMemoryTaskStore:
             self._next_id += 1
             return task
 
+    def update_task(self, task_id: int, payload: TaskUpdate) -> Task | None:
+        with self._lock:
+            task = self._tasks.get(task_id)
+            if task is None:
+                return None
+            updates: dict[str, Any] = {"updated_at": datetime.now(timezone.utc)}
+            if payload.title is not None:
+                updates["title"] = payload.title.strip()
+            if payload.description is not None:
+                updates["description"] = payload.description.strip()
+            if payload.priority is not None:
+                updates["priority"] = payload.priority
+            updated_task = task.model_copy(update=updates)
+            self._tasks[task_id] = updated_task
+            return updated_task
+
     def update_status(self, task_id: int, status: TaskStatus) -> Task | None:
         with self._lock:
             task = self._tasks.get(task_id)
             if task is None:
                 return None
-
             updated_task = task.model_copy(
                 update={"status": status, "updated_at": datetime.now(timezone.utc)}
             )
@@ -100,12 +129,20 @@ class SupabaseTaskStore:
         self._client = client
         self._table_name = table_name
 
-    def list_tasks(self) -> list[Task]:
-        response = (
-            self._client.table(self._table_name).select("*").order("id", desc=False).execute()
-        )
+    def list_tasks(self, status: TaskStatus | None = None) -> list[Task]:
+        query = self._client.table(self._table_name).select("*").order("id", desc=False)
+        if status is not None:
+            query = query.eq("status", status.value)
+        response = query.execute()
         rows = response.data or []
         return [Task.model_validate(row) for row in rows]
+
+    def get_task(self, task_id: int) -> Task | None:
+        response = self._client.table(self._table_name).select("*").eq("id", task_id).execute()
+        rows = response.data or []
+        if not rows:
+            return None
+        return Task.model_validate(rows[0])
 
     def create_task(self, payload: TaskCreate) -> Task:
         response = (
@@ -115,6 +152,7 @@ class SupabaseTaskStore:
                     "title": payload.title.strip(),
                     "description": payload.description.strip(),
                     "status": TaskStatus.TODO.value,
+                    "priority": payload.priority.value,
                 }
             )
             .execute()
@@ -124,19 +162,29 @@ class SupabaseTaskStore:
             raise RuntimeError("Supabase insert did not return a task row.")
         return Task.model_validate(rows[0])
 
+    def update_task(self, task_id: int, payload: TaskUpdate) -> Task | None:
+        existing = self._client.table(self._table_name).select("id").eq("id", task_id).execute()
+        if not existing.data:
+            return None
+        updates: dict[str, Any] = {}
+        if payload.title is not None:
+            updates["title"] = payload.title.strip()
+        if payload.description is not None:
+            updates["description"] = payload.description.strip()
+        if payload.priority is not None:
+            updates["priority"] = payload.priority.value
+        if updates:
+            self._client.table(self._table_name).update(updates).eq("id", task_id).execute()
+        return self.get_task(task_id)
+
     def update_status(self, task_id: int, status: TaskStatus) -> Task | None:
         existing = self._client.table(self._table_name).select("id").eq("id", task_id).execute()
         if not existing.data:
             return None
-
         self._client.table(self._table_name).update({"status": status.value}).eq(
             "id", task_id
         ).execute()
-        refreshed = self._client.table(self._table_name).select("*").eq("id", task_id).execute()
-        rows = refreshed.data or []
-        if not rows:
-            return None
-        return Task.model_validate(rows[0])
+        return self.get_task(task_id)
 
     def delete_task(self, task_id: int) -> bool:
         existing = self._client.table(self._table_name).select("id").eq("id", task_id).execute()
