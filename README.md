@@ -30,7 +30,7 @@ portfolio-projects/
 │   │   └── frontend/           React news search UI
 │   └── bento-dashboard/        React stats + chart dashboard
 ├── Cybersecurity/              End-to-end encrypted chat app
-├── machine_learning/           House price prediction pipeline
+├── machine_learning/           House price prediction & CNN classifier
 └── dsa-python/                 Pattern-wise DSA practice + tests
 ```
 
@@ -46,6 +46,7 @@ portfolio-projects/
 | Frontend | [`bento-dashboard`](fullstack/bento-dashboard/) | Stateful dashboard · charts · local persistence | React · Vite · Recharts |
 | Cybersecurity | [`Cybersecurity`](Cybersecurity/) | E2E encryption · auth · rate limiting · relay model | Python · Flask · PyCryptodome |
 | Machine Learning | [`house_price_prediction`](machine_learning/projects/house_price_prediction/) | Tabular ML pipeline · preprocessing · inference | scikit-learn · pandas |
+| Machine Learning | [`cnn_image_classifier`](machine_learning/projects/cnn_image_classifier/) | CNN architecture · data augmentation · evaluation | TensorFlow · Keras |
 | Interview Prep | [`dsa-python`](dsa-python/) | Pattern-wise DSA · roadmap · pytest suite | Python · pytest |
 
 ---
@@ -129,7 +130,7 @@ cd dsa-python && pip install -r requirements.txt && python -m pytest
 - **Database experience** — Supabase (PostgreSQL), schema design, triggers, migrations
 - **Test culture** — pytest with in-memory fixtures; no flaky external dependencies
 - **Security** — password hashing, account lockout, E2E encryption, rate limiting
-- **ML pipeline** — data preprocessing, training, serialisation, inference scripts
+- **Machine Learning** — deep learning with CNNs (TensorFlow/Keras), tabular pipelines (scikit-learn), augmentation, and model evaluation
 - **Code quality** — type hints throughout Python, Pydantic validation, ESLint
 
 ---
