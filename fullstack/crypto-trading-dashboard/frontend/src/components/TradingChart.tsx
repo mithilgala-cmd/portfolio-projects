@@ -139,12 +139,22 @@ export default function TradingChart({ onPriceUpdate }: { onPriceUpdate?: (price
 
         // Update SMA (Simplified logic: keep track of last N points)
         setDataPoints(prev => {
-          const newData = [...prev, candle];
-          if (newData.length > 50) newData.shift();
+          const lastPoint = prev[prev.length - 1];
+          let newData;
+          
+          if (lastPoint && lastPoint.time === candle.time) {
+            // If the timestamp is the same, replace the last point (standard chart update behavior)
+            newData = [...prev.slice(0, -1), candle];
+          } else {
+            // Otherwise, append the new point
+            newData = [...prev, candle];
+            if (newData.length > 100) newData.shift(); // Keep a bit more history for better SMA
+          }
           
           if (newData.length >= 20) {
             const sma = calculateSMA(newData, 20);
             if (sma.length > 0) {
+              // Now sma will have unique, strictly ascending timestamps
               smaSeries.setData(sma);
             }
           }
