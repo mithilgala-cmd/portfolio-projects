@@ -12,7 +12,6 @@ Key fixes vs. original:
     augmentation is typically worth +5–8% final test accuracy.
 """
 
-import numpy as np
 from tensorflow.keras.datasets import cifar10
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
