@@ -50,6 +50,7 @@ function TaskColumn({ title, tasks, accent, onStatusChange, onDelete, onEdit }) 
 
               <div className="task-actions">
                 <div className="status-buttons">
+                  {/* eslint-disable-next-line no-unused-vars */}
                   {STATUS_OPTIONS.map(({ value, label, Icon }) => (
                     <button
                       key={`${task.id}-${value}`}

@@ -14,7 +14,7 @@ const STATUS_GROUPS = [
 const STATUS_TABS    = ['all', 'todo', 'in_progress', 'done']
 const PRIORITY_TABS  = ['all', 'high', 'medium', 'low']
 
-function tabLabel(value, type) {
+function tabLabel(value) {
   if (value === 'all') return 'All'
   if (value === 'in_progress') return 'In Progress'
   return value.charAt(0).toUpperCase() + value.slice(1)
@@ -31,7 +31,7 @@ function App() {
   const [search, setSearch]             = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [priorityFilter, setPriorityFilter] = useState('all')
-  const [totalCount, setTotalCount]     = useState(0)
+  const [_totalCount, setTotalCount]     = useState(0)
 
   const loadTasks = useCallback(async () => {
     setLoading(true)
