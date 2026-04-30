@@ -14,12 +14,12 @@ and DSA projects — built for software engineering placements.
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```text
 portfolio-projects/
 ├── fullstack/
-│   ├── task-tracker/           ⭐ Featured — Full-stack Kanban app
+│   ├── task-tracker/           Featured — Full-stack Kanban app
 │   │   ├── backend/            FastAPI + Supabase REST API
 │   │   └── frontend/           React + Vite Kanban board
 │   ├── code-review-ai/
@@ -29,7 +29,7 @@ portfolio-projects/
 │   │   ├── backend/            FastAPI async news API
 │   │   └── frontend/           React news search UI
 │   ├── bento-dashboard/        React stats + chart dashboard
-│   └── crypto-trading-dashboard/ 💹 Featured — Real-time trading app
+│   └── crypto-trading-dashboard/ Featured — Real-time trading app
 │       ├── backend/            FastAPI + Binance WebSockets
 │       └── frontend/           Next.js + Lightweight Charts
 ├── Cybersecurity/              End-to-end encrypted chat app
@@ -39,14 +39,14 @@ portfolio-projects/
 
 ---
 
-## 🗂️ Project Index
+## Project Index
 
 | Area | Project | What it demonstrates | Stack |
 |---|---|---|---|
-| ⭐ Full-Stack | [`task-tracker`](fullstack/task-tracker/) | Clean arch · CRUD API · React Kanban · Supabase · 22 tests | FastAPI · React · Supabase |
+| Full-Stack | [`task-tracker`](fullstack/task-tracker/) | Clean arch · CRUD API · React Kanban · Supabase · 22 tests | FastAPI · React · Supabase |
 | Full-Stack | [`code-review-ai`](fullstack/code-review-ai/) | LLM API integration · Monaco editor UI | FastAPI · Gemini · React |
 | Full-Stack | [`news-aggregator`](fullstack/news-aggregator/) | Async API calls · caching · search UI | FastAPI · httpx · React |
-| ⭐ Full-Stack | [`crypto-trading-dashboard`](fullstack/crypto-trading-dashboard/) | WebSockets · Real-time charts · Bot logic · Premium UI | FastAPI · Next.js · Redis |
+| Full-Stack | [`crypto-trading-dashboard`](fullstack/crypto-trading-dashboard/) | WebSockets · Real-time charts · Bot logic · Premium UI | FastAPI · Next.js · Redis |
 | Frontend | [`bento-dashboard`](fullstack/bento-dashboard/) | Stateful dashboard · charts · local persistence | React · Vite · Recharts |
 | Cybersecurity | [`Cybersecurity`](Cybersecurity/) | E2E encryption · auth · rate limiting · relay model | Python · Flask · PyCryptodome |
 | Machine Learning | [`house_price_prediction`](machine_learning/projects/house_price_prediction/) | Tabular ML pipeline · preprocessing · inference | scikit-learn · pandas |
@@ -55,7 +55,7 @@ portfolio-projects/
 
 ---
 
-## ⭐ Featured Project — Task Tracker Pro
+## Featured Project — Task Tracker Pro
 
 > A production-ready full-stack task management system built to demonstrate real engineering depth.
 
@@ -71,11 +71,11 @@ portfolio-projects/
 - Live search + status & priority tab filters
 - Animated stats header with completion progress bar
 
-→ [View Task Tracker README](fullstack/task-tracker/README.md)
+[View Task Tracker README](fullstack/task-tracker/README.md)
 
 ---
 
-## 🚀 Quick Start — Task Tracker
+## Quick Start — Task Tracker
 
 ```bash
 git clone https://github.com/mithilgala-cmd/portfolio-projects.git
@@ -95,7 +95,7 @@ API docs: `http://127.0.0.1:8002/docs` · App: `http://localhost:5173`
 
 ---
 
-## 🚀 Other Quick Starts
+## Other Quick Starts
 
 **News Aggregator:**
 ```bash
@@ -135,7 +135,7 @@ cd dsa-python && pip install -r requirements.txt && python -m pytest
 
 ---
 
-## 🔍 Placement Highlights
+## Placement Highlights
 
 - **Full-stack depth** — FastAPI + Next.js/React across multiple projects with real API design patterns
 - **Real-time systems** — WebSocket streaming for live market data (Binance API integration)
@@ -148,7 +148,7 @@ cd dsa-python && pip install -r requirements.txt && python -m pytest
 
 ---
 
-## 📋 Prerequisites
+## Prerequisites
 
 | Requirement | Version |
 |---|---|
@@ -158,7 +158,7 @@ cd dsa-python && pip install -r requirements.txt && python -m pytest
 
 ---
 
-## 📝 Notes
+## Notes
 
 - API keys are required for external-provider projects (NewsAPI, Google Gemini, Supabase).
 - Each project folder contains its own README with detailed setup instructions.
