@@ -28,7 +28,10 @@ portfolio-projects/
 │   ├── news-aggregator/
 │   │   ├── backend/            FastAPI async news API
 │   │   └── frontend/           React news search UI
-│   └── bento-dashboard/        React stats + chart dashboard
+│   ├── bento-dashboard/        React stats + chart dashboard
+│   └── crypto-trading-dashboard/ 💹 Featured — Real-time trading app
+│       ├── backend/            FastAPI + Binance WebSockets
+│       └── frontend/           Next.js + Lightweight Charts
 ├── Cybersecurity/              End-to-end encrypted chat app
 ├── machine_learning/           House price prediction & CNN classifier
 └── dsa-python/                 Pattern-wise DSA practice + tests
@@ -43,6 +46,7 @@ portfolio-projects/
 | ⭐ Full-Stack | [`task-tracker`](fullstack/task-tracker/) | Clean arch · CRUD API · React Kanban · Supabase · 22 tests | FastAPI · React · Supabase |
 | Full-Stack | [`code-review-ai`](fullstack/code-review-ai/) | LLM API integration · Monaco editor UI | FastAPI · Gemini · React |
 | Full-Stack | [`news-aggregator`](fullstack/news-aggregator/) | Async API calls · caching · search UI | FastAPI · httpx · React |
+| ⭐ Full-Stack | [`crypto-trading-dashboard`](fullstack/crypto-trading-dashboard/) | WebSockets · Real-time charts · Bot logic · Premium UI | FastAPI · Next.js · Redis |
 | Frontend | [`bento-dashboard`](fullstack/bento-dashboard/) | Stateful dashboard · charts · local persistence | React · Vite · Recharts |
 | Cybersecurity | [`Cybersecurity`](Cybersecurity/) | E2E encryption · auth · rate limiting · relay model | Python · Flask · PyCryptodome |
 | Machine Learning | [`house_price_prediction`](machine_learning/projects/house_price_prediction/) | Tabular ML pipeline · preprocessing · inference | scikit-learn · pandas |
@@ -109,6 +113,14 @@ uvicorn main:app --reload --port 8001
 cd ../frontend && npm install && npm run dev
 ```
 
+**Crypto Trading Dashboard:**
+```bash
+cd fullstack/crypto-trading-dashboard/backend && pip install -r requirements.txt
+uvicorn main:app --reload --port 8001
+
+cd ../frontend && npm install && npm run dev
+```
+
 **Cybersecurity Chat:**
 ```bash
 cd Cybersecurity && pip install -r requirements.txt
@@ -125,7 +137,8 @@ cd dsa-python && pip install -r requirements.txt && python -m pytest
 
 ## 🔍 Placement Highlights
 
-- **Full-stack depth** — FastAPI + React across multiple projects with real API design patterns
+- **Full-stack depth** — FastAPI + Next.js/React across multiple projects with real API design patterns
+- **Real-time systems** — WebSocket streaming for live market data (Binance API integration)
 - **Clean architecture** — service layer separation, dependency inversion, protocol-based store abstraction
 - **Database experience** — Supabase (PostgreSQL), schema design, triggers, migrations
 - **Test culture** — pytest with in-memory fixtures; no flaky external dependencies
