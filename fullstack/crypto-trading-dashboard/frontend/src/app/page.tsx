@@ -3,17 +3,37 @@
 import TradingChart from "@/components/TradingChart";
 import Sidebar from "@/components/Sidebar";
 import OrderBook from "@/components/OrderBook";
-import { Activity, LayoutDashboard, Settings, Wallet, ArrowUpCircle, ArrowDownCircle, Search, Bell, History, TrendingUp } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Settings, ArrowUpCircle, ArrowDownCircle, Search, Bell, History, TrendingUp } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+
+interface PortfolioData {
+  balance_usd: number;
+  assets: Record<string, number>;
+}
+
+interface Trade {
+  timestamp: number;
+  type: 'buy' | 'sell';
+  symbol: string;
+  amount: number;
+  price: number;
+}
+
+interface Bot {
+  name: string;
+  type: string;
+  trigger_price: string;
+  status: string;
+}
 
 export default function Home() {
-  const [portfolio, setPortfolio] = useState<any>(null);
-  const [trades, setTrades] = useState<any[]>([]);
-  const [bots, setBots] = useState<any[]>([]);
+  const [portfolio, setPortfolio] = useState<PortfolioData | null>(null);
+  const [trades, setTrades] = useState<Trade[]>([]);
+  const [bots, setBots] = useState<Bot[]>([]);
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
   const [amount, setAmount] = useState<string>("0.01");
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [portRes, tradesRes, botsRes] = await Promise.all([
         fetch("http://localhost:8001/api/portfolio"),
@@ -27,13 +47,18 @@ export default function Home() {
     } catch (err) {
       console.error("Failed to fetch data:", err);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchData();
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
     const interval = setInterval(fetchData, 5000); // Poll every 5s
-    return () => clearInterval(interval);
-  }, []);
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
+  }, [fetchData]);
 
   const handleTrade = async (type: "buy" | "sell") => {
     if (!currentPrice) return;
@@ -61,6 +86,10 @@ export default function Home() {
       console.error("Trade failed:", err);
     }
   };
+
+  const handlePriceUpdate = useCallback((p: number) => {
+    setCurrentPrice(p);
+  }, []);
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -110,7 +139,7 @@ export default function Home() {
               
               {/* Trading Chart */}
               <div className="min-h-[500px]">
-                <TradingChart onPriceUpdate={(p) => setCurrentPrice(p)} />
+                <TradingChart onPriceUpdate={handlePriceUpdate} />
               </div>
               
               {/* Bottom Row: Trade Panel & Active Bots */}

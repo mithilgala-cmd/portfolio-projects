@@ -1,11 +1,22 @@
 "use client";
 
 import Sidebar from "@/components/Sidebar";
-import { Settings, Plus, Play, Trash2, Shield, Zap, Target, Cpu } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Settings, Plus, Trash2, Shield, Zap, Target, Cpu, History } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+
+interface Bot {
+  id: number;
+  name: string;
+  symbol: string;
+  type: string;
+  trigger_price: string;
+  action: string;
+  amount: string;
+  status: string;
+}
 
 export default function BotBuilderPage() {
-  const [bots, setBots] = useState<any[]>([]);
+  const [bots, setBots] = useState<Bot[]>([]);
   const [newBot, setNewBot] = useState({
     name: "Alpha-1 Bot",
     symbol: "BTC",
@@ -15,18 +26,25 @@ export default function BotBuilderPage() {
     amount: "0.01"
   });
 
-  const fetchBots = async () => {
+  const fetchBots = useCallback(async () => {
     try {
       const res = await fetch("http://localhost:8001/api/bots");
       if (res.ok) setBots(await res.json());
     } catch (err) {
       console.error("Failed to fetch bots:", err);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchBots();
-  }, []);
+    const timer = setTimeout(() => {
+      fetchBots();
+    }, 0);
+    const interval = setInterval(fetchBots, 5000); // Poll every 5s
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
+  }, [fetchBots]);
 
   const handleCreateBot = async () => {
     const updatedBots = [...bots, { ...newBot, id: Date.now(), status: "active" }];

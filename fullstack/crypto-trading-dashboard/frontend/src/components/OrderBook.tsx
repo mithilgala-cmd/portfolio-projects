@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface OrderBookItem {
   price: number;
@@ -12,7 +12,7 @@ export default function OrderBook({ currentPrice }: { currentPrice: number | nul
   const [asks, setAsks] = useState<OrderBookItem[]>([]);
   const [bids, setBids] = useState<OrderBookItem[]>([]);
 
-  const fetchDepth = async () => {
+  const fetchDepth = useCallback(async () => {
     try {
       const res = await fetch("http://localhost:8001/api/market-depth");
       if (res.ok) {
@@ -23,13 +23,18 @@ export default function OrderBook({ currentPrice }: { currentPrice: number | nul
     } catch (err) {
       console.error("Failed to fetch market depth:", err);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchDepth();
-    const interval = setInterval(fetchDepth, 1000);
-    return () => clearInterval(interval);
-  }, [currentPrice]);
+    const timer = setTimeout(() => {
+      fetchDepth();
+    }, 0);
+    const interval = setInterval(fetchDepth, 2000); // 2s interval is enough for order book
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
+  }, [fetchDepth]);
 
   return (
     <div className="panel h-full flex flex-col overflow-hidden bg-panel/30 backdrop-blur-xl">

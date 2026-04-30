@@ -1,12 +1,25 @@
 "use client";
 
 import Sidebar from "@/components/Sidebar";
-import { Wallet, TrendingUp, TrendingDown, Clock, ArrowUpRight, ArrowDownLeft, PieChart, Landmark } from "lucide-react";
+import { TrendingUp, Clock, ArrowUpRight, ArrowDownLeft, PieChart, Landmark, History } from "lucide-react";
 import { useEffect, useState } from "react";
 
+interface PortfolioData {
+  balance_usd: number;
+  assets: Record<string, number>;
+}
+
+interface Trade {
+  timestamp: number;
+  type: 'buy' | 'sell';
+  symbol: string;
+  amount: number;
+  price: number;
+}
+
 export default function PortfolioPage() {
-  const [portfolio, setPortfolio] = useState<any>(null);
-  const [trades, setTrades] = useState<any[]>([]);
+  const [portfolio, setPortfolio] = useState<PortfolioData | null>(null);
+  const [trades, setTrades] = useState<Trade[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {

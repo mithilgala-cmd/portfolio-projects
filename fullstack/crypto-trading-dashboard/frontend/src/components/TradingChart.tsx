@@ -10,8 +10,18 @@ import {
   CandlestickSeries, 
   CrosshairMode,
   LineSeries,
-  HistogramSeries
+  HistogramSeries,
+  LineData
 } from "lightweight-charts";
+
+interface MarketData {
+  time: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
 
 export default function TradingChart({ onPriceUpdate }: { onPriceUpdate?: (price: number) => void }) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -22,14 +32,15 @@ export default function TradingChart({ onPriceUpdate }: { onPriceUpdate?: (price
   
   const [isConnected, setIsConnected] = useState(false);
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
-  const [dataPoints, setDataPoints] = useState<any[]>([]);
+  const dataPointsRef = useRef<CandlestickData<Time>[]>([]);
 
   // Function to calculate SMA
-  const calculateSMA = (data: any[], period: number) => {
-    const sma = [];
+  const calculateSMA = (data: CandlestickData<Time>[], period: number): LineData<Time>[] => {
+    const sma: LineData<Time>[] = [];
     for (let i = 0; i < data.length; i++) {
       if (i < period - 1) continue;
-      const sum = data.slice(i - period + 1, i + 1).reduce((acc, val) => acc + val.close, 0);
+      const slice = data.slice(i - period + 1, i + 1);
+      const sum = slice.reduce((acc, val) => acc + val.close, 0);
       sma.push({ time: data[i].time, value: sum / period });
     }
     return sma;
@@ -115,7 +126,7 @@ export default function TradingChart({ onPriceUpdate }: { onPriceUpdate?: (price
     };
 
     ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+      const data: MarketData = JSON.parse(event.data);
       if (data && data.time) {
         const candle: CandlestickData<Time> = {
           time: data.time as Time,
@@ -137,29 +148,26 @@ export default function TradingChart({ onPriceUpdate }: { onPriceUpdate?: (price
         setCurrentPrice(data.close);
         if (onPriceUpdate) onPriceUpdate(data.close);
 
-        // Update SMA (Simplified logic: keep track of last N points)
-        setDataPoints(prev => {
-          const lastPoint = prev[prev.length - 1];
-          let newData;
-          
-          if (lastPoint && lastPoint.time === candle.time) {
-            // If the timestamp is the same, replace the last point (standard chart update behavior)
-            newData = [...prev.slice(0, -1), candle];
-          } else {
-            // Otherwise, append the new point
-            newData = [...prev, candle];
-            if (newData.length > 100) newData.shift(); // Keep a bit more history for better SMA
+        // Update SMA logic using ref
+        const prevData = dataPointsRef.current;
+        const lastPoint = prevData[prevData.length - 1];
+        let newData;
+        
+        if (lastPoint && lastPoint.time === candle.time) {
+          newData = [...prevData.slice(0, -1), candle];
+        } else {
+          newData = [...prevData, candle];
+          if (newData.length > 100) newData.shift();
+        }
+        
+        dataPointsRef.current = newData;
+        
+        if (newData.length >= 20) {
+          const sma = calculateSMA(newData, 20);
+          if (sma.length > 0) {
+            smaSeries.setData(sma);
           }
-          
-          if (newData.length >= 20) {
-            const sma = calculateSMA(newData, 20);
-            if (sma.length > 0) {
-              // Now sma will have unique, strictly ascending timestamps
-              smaSeries.setData(sma);
-            }
-          }
-          return newData;
-        });
+        }
       }
     };
 
@@ -173,7 +181,7 @@ export default function TradingChart({ onPriceUpdate }: { onPriceUpdate?: (price
       ws.close();
       chart.remove();
     };
-  }, []);
+  }, [onPriceUpdate]);
 
   return (
     <div className="panel h-full flex flex-col min-h-[450px]">
